@@ -32,6 +32,7 @@ namespace ld46
         List<ATile[,]> map;
         List<Person> persons;
 
+        Person player;
 
         public Game1()
         {
@@ -128,7 +129,8 @@ namespace ld46
             }
 
             persons = new List<Person>();
-            persons.Add(new Person(new Vector2(100, 100)));
+            player = new Person(new Vector2(100, 100));
+            persons.Add(player);
 
             // TODO: use this.Content to load your game content here
         }
@@ -151,6 +153,25 @@ namespace ld46
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+
+            float speed = 3;
+
+            if (Keyboard.GetState().IsKeyDown(Keys.W))
+            {
+                player.position += new Vector2(0, -1) * speed;
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.A))
+            {
+                player.position += new Vector2(-1, 0) * speed;
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.S))
+            {
+                player.position += new Vector2(0, 1) * speed;
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.D))
+            {
+                player.position += new Vector2(1, 0) * speed;
+            }
 
             // TODO: Add your update logic here
 
