@@ -1,6 +1,8 @@
-﻿using Microsoft.Xna.Framework;
+﻿using ld46.Classes;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace ld46
 {
@@ -11,11 +13,22 @@ namespace ld46
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        Texture2D person;
+        Texture2D desk;
+        Texture2D floor;
+
+        int mapWidth = 40;
+        int mapHeight = 40;
+        Tile[,] map;
         
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
+            graphics.PreferredBackBufferWidth = 1240;
+            graphics.PreferredBackBufferHeight = 800;
+            graphics.ApplyChanges();
             Content.RootDirectory = "Content";
+            map = new Tile[mapWidth, mapHeight];
         }
 
         /// <summary>
@@ -39,6 +52,19 @@ namespace ld46
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            person = Content.Load<Texture2D>("Sprites/person");
+            desk = Content.Load<Texture2D>("Sprites/desk");
+            floor = Content.Load<Texture2D>("Sprites/floor");
+
+            for (int j = 0; j < mapHeight; j++)
+            {
+                for (int i = 0; i < mapWidth; i++)
+                {
+                    map[i, j] = new Tile(floor);
+                }
+            }
+
+            map[2, 2] = new Tile(desk);
 
             // TODO: use this.Content to load your game content here
         }
@@ -74,6 +100,16 @@ namespace ld46
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
+            spriteBatch.Begin();
+            for (int j = 0; j < mapHeight; j++)
+            {
+                for (int i = 0; i < mapWidth; i++)
+                {
+                    spriteBatch.Draw(map[i, j].Texture, new Vector2(i * 40, j * 40), Color.White);
+                }
+            }
+            
+            spriteBatch.End();
 
             // TODO: Add your drawing code here
 
