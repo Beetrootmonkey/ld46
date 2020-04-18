@@ -2,7 +2,9 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended;
 using System;
+using System.Collections.Generic;
 
 namespace ld46
 {
@@ -13,10 +15,10 @@ namespace ld46
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        Texture2D person;
-        Texture2D desk;
-        Texture2D floor;
-        Texture2D wall;
+        Texture2D texturePerson;
+        Texture2D textureDesk;
+        Texture2D textureFloor;
+        Texture2D textureWall;
 
         Texture2D mapData;
         Texture2D mapAreaData;
@@ -27,8 +29,10 @@ namespace ld46
         float tileScale;
         int mapOffsetX;
         int mapOffsetY;
-        Tile[,] map;
-        
+        List<ATile[,]> map;
+        List<Person> persons;
+
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -72,10 +76,10 @@ namespace ld46
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            person = Content.Load<Texture2D>("Sprites/person");
-            desk = Content.Load<Texture2D>("Sprites/desk");
-            floor = Content.Load<Texture2D>("Sprites/floor");
-            wall = Content.Load<Texture2D>("Sprites/wall");
+            texturePerson = Content.Load<Texture2D>("Sprites/person");
+            textureDesk = Content.Load<Texture2D>("Sprites/desk");
+            textureFloor = Content.Load<Texture2D>("Sprites/floor");
+            textureWall = Content.Load<Texture2D>("Sprites/wall");
 
             mapData = Content.Load<Texture2D>("MapData/map1");
             mapAreaData = Content.Load<Texture2D>("MapData/map1_areas");
@@ -84,11 +88,16 @@ namespace ld46
 
             OnResizeWindow();
 
-            map = new Tile[mapWidth, mapHeight];
+            map = new List<ATile[,]>();
+            var wallArray = new WallTile[mapWidth, mapHeight];
+            var areasArray = new AreaTile[mapWidth, mapHeight];
 
-            Color[] colors = new Color[mapWidth * mapHeight];
+            map.Add(wallArray);
+            map.Add(areasArray);
+
+            var colors = new Color[mapWidth * mapHeight];
+
             mapData.GetData<Color>(colors);
-
             for (int j = 0; j < mapHeight; j++)
             {
                 for (int i = 0; i < mapWidth; i++)
@@ -96,18 +105,30 @@ namespace ld46
                     Color color = colors[i + j * mapWidth];
                     if (color == new Color(255, 255, 255))
                     {
-                        map[i, j] = new Tile(wall);
+                        wallArray[i, j] = new WallTile(textureWall);
                     }
                     else if (color == new Color(124, 95, 65))
                     {
-                        map[i, j] = new Tile(desk);
-                    }
-                    else
-                    {
-                        map[i, j] = new Tile(floor);
+                        wallArray[i, j] = new WallTile(textureDesk);
                     }
                 }
             }
+
+            mapAreaData.GetData<Color>(colors);
+            for (int j = 0; j < mapHeight; j++)
+            {
+                for (int i = 0; i < mapWidth; i++)
+                {
+                    Color color = colors[i + j * mapWidth];
+                    if (color.A != 0)
+                    {
+                        areasArray[i, j] = new AreaTile(color);
+                    }
+                }
+            }
+
+            persons = new List<Person>();
+            persons.Add(new Person(new Vector2(100, 100)));
 
             // TODO: use this.Content to load your game content here
         }
@@ -142,19 +163,29 @@ namespace ld46
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Black);
-            spriteBatch.Begin();
+            GraphicsDevice.Clear(Color.White);
+            spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
 
-            for (int j = 0; j < mapHeight; j++)
+            foreach (var layer in map)
             {
-                for (int i = 0; i < mapWidth; i++)
+                for (int j = 0; j < mapHeight; j++)
                 {
-                    spriteBatch.Draw(map[i, j].Texture, new Vector2(i * tileSize * tileScale + mapOffsetX, j * tileSize * tileScale + mapOffsetY), null, Color.White, 0, Vector2.Zero, tileScale, SpriteEffects.None, 0);
+                    for (int i = 0; i < mapWidth; i++)
+                    {
+                        if (layer[i, j] != null)
+                        {
+                            layer[i, j].Draw(spriteBatch, i, j, tileSize, tileScale, mapOffsetX, mapOffsetY);
+                        }
+                    }
                 }
             }
 
-            
-            
+            foreach (var person in persons)
+            {
+                person.Draw(spriteBatch, texturePerson, tileScale, mapOffsetX, mapOffsetY);
+            }
+
+
             spriteBatch.End();
 
             // TODO: Add your drawing code here

@@ -43,7 +43,10 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Classes\Tile.cs" />
+    <Compile Include="Classes\AreaTile.cs" />
+    <Compile Include="Classes\Person.cs" />
+    <Compile Include="Classes\WallTile.cs" />
+    <Compile Include="Classes\ATile.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
