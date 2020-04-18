@@ -16,9 +16,17 @@ namespace ld46
         Texture2D person;
         Texture2D desk;
         Texture2D floor;
+        Texture2D wall;
 
-        int mapWidth = 40;
-        int mapHeight = 40;
+        Texture2D mapData;
+        Texture2D mapAreaData;
+
+        int mapWidth;
+        int mapHeight;
+        int tileSize;
+        float tileScale;
+        int mapOffsetX;
+        int mapOffsetY;
         Tile[,] map;
         
         public Game1()
@@ -26,9 +34,10 @@ namespace ld46
             graphics = new GraphicsDeviceManager(this);
             graphics.PreferredBackBufferWidth = 1240;
             graphics.PreferredBackBufferHeight = 800;
+            Window.AllowUserResizing = true;
+            Window.ClientSizeChanged += (Object sender, EventArgs e) => OnResizeWindow();
             graphics.ApplyChanges();
             Content.RootDirectory = "Content";
-            map = new Tile[mapWidth, mapHeight];
         }
 
         /// <summary>
@@ -40,8 +49,19 @@ namespace ld46
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-
+            IsMouseVisible = true;
             base.Initialize();
+        }
+
+        protected void OnResizeWindow()
+        {
+            int originalTileSize = 40;
+            tileSize = originalTileSize;
+
+            float currentTileSize = Math.Min((float)Window.ClientBounds.Width / mapWidth, (float)Window.ClientBounds.Height / mapHeight);
+            tileScale = currentTileSize / originalTileSize;
+            mapOffsetX = (Window.ClientBounds.Width - Math.Min(Window.ClientBounds.Width, Window.ClientBounds.Height)) / 2;
+            mapOffsetY = (Window.ClientBounds.Height - Math.Min(Window.ClientBounds.Width, Window.ClientBounds.Height)) / 2;
         }
 
         /// <summary>
@@ -55,16 +75,39 @@ namespace ld46
             person = Content.Load<Texture2D>("Sprites/person");
             desk = Content.Load<Texture2D>("Sprites/desk");
             floor = Content.Load<Texture2D>("Sprites/floor");
+            wall = Content.Load<Texture2D>("Sprites/wall");
+
+            mapData = Content.Load<Texture2D>("MapData/map1");
+            mapAreaData = Content.Load<Texture2D>("MapData/map1_areas");
+            mapWidth = mapData.Width;
+            mapHeight = mapData.Height;
+
+            OnResizeWindow();
+
+            map = new Tile[mapWidth, mapHeight];
+
+            Color[] colors = new Color[mapWidth * mapHeight];
+            mapData.GetData<Color>(colors);
 
             for (int j = 0; j < mapHeight; j++)
             {
                 for (int i = 0; i < mapWidth; i++)
                 {
-                    map[i, j] = new Tile(floor);
+                    Color color = colors[i + j * mapWidth];
+                    if (color == new Color(255, 255, 255))
+                    {
+                        map[i, j] = new Tile(wall);
+                    }
+                    else if (color == new Color(124, 95, 65))
+                    {
+                        map[i, j] = new Tile(desk);
+                    }
+                    else
+                    {
+                        map[i, j] = new Tile(floor);
+                    }
                 }
             }
-
-            map[2, 2] = new Tile(desk);
 
             // TODO: use this.Content to load your game content here
         }
@@ -99,15 +142,18 @@ namespace ld46
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
+
             for (int j = 0; j < mapHeight; j++)
             {
                 for (int i = 0; i < mapWidth; i++)
                 {
-                    spriteBatch.Draw(map[i, j].Texture, new Vector2(i * 40, j * 40), Color.White);
+                    spriteBatch.Draw(map[i, j].Texture, new Vector2(i * tileSize * tileScale + mapOffsetX, j * tileSize * tileScale + mapOffsetY), null, Color.White, 0, Vector2.Zero, tileScale, SpriteEffects.None, 0);
                 }
             }
+
+            
             
             spriteBatch.End();
 
