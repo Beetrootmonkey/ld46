@@ -14,6 +14,12 @@ using Animation = Spritesheet.Animation;
 
 namespace ld46
 {
+    public enum GameState
+    {
+        Running,
+        GameOver
+    }
+
     /// <summary>
     /// This is the main type for your game.
     /// </summary>
@@ -22,6 +28,8 @@ namespace ld46
         public static bool DebugMode;
         private DateTime _StartTime;
         private KeyboardState _PreviousKeyboardState;
+
+        private GameState _CurrentGameState;
 
         GraphicsDeviceManager _Graphics;
         SpriteBatch _SpriteBatch;
@@ -42,8 +50,8 @@ namespace ld46
 
             _Graphics = new GraphicsDeviceManager(this)
             {
-                PreferredBackBufferWidth = 1240,
-                PreferredBackBufferHeight = 800
+                PreferredBackBufferWidth = 1216,
+                PreferredBackBufferHeight = 768
             };
             Window.AllowUserResizing = true;
             Window.ClientSizeChanged += (Object sender, EventArgs e) => OnResizeWindow();
@@ -94,6 +102,7 @@ namespace ld46
             _Lake.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0),(0, 1),(0, 2),(0, 3),(0, 4),(0, 5),(0, 6),(0, 7)));
 
             //Flower
+            _FlowerList = new List<Flower>();
             LoadFlower(1);
 
 
@@ -109,7 +118,7 @@ namespace ld46
             _Player.AddAnimation(PlayerAnimation.LookingDownLeft, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation(animFront));
             _Player.AddAnimation(PlayerAnimation.LookingLeftUp, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation(animBack));
 
-            //_Player.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
+            _CurrentGameState = GameState.Running;
         }
 
         private void LoadFlower(int count)
@@ -120,10 +129,8 @@ namespace ld46
             var animationSick = sheet.CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1));
             var animationDead = sheet.CreateAnimation((0, 2));
 
-            _FlowerList = new List<Flower>();
-
             Random rnd = new Random();
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < count; i++)
             {
                 Flower flower;
                 do
@@ -167,50 +174,68 @@ namespace ld46
                 LoadContent();
             }
 
+#if DEBUG
             if (Keyboard.GetState().IsKeyDown(Keys.LeftControl) && Keyboard.GetState().IsKeyDown(Keys.D) 
-                    && !_PreviousKeyboardState.IsKeyDown(Keys.D))
+                                                                && !_PreviousKeyboardState.IsKeyDown(Keys.D))
             {
                 DebugMode = !DebugMode;
             }
             
             if (Keyboard.GetState().IsKeyDown(Keys.N) && !_PreviousKeyboardState.IsKeyDown(Keys.N))
             {
-                //Neue Blume
-            }
+                LoadFlower(1);
+            } 
+#endif
 
-            //Player
-            _Player.Update(gameTime);
-            UpdatePlayerPosition();
-
-            //Lake
-            _Lake.Update(gameTime);
-
-            //Flower
-            bool updateFlowerHealth = false;
-            if (gameTime.TotalGameTime - _LastFlowerHealthUpdate > TimeSpan.FromSeconds(1))
+            if (_CurrentGameState == GameState.Running)
             {
-                _LastFlowerHealthUpdate = gameTime.TotalGameTime;
-                updateFlowerHealth = true;
-            }
+                //Player
+                _Player.Update(gameTime);
+                UpdatePlayerPosition();
 
-            foreach (var flower in _FlowerList)
-            {
-                flower.Update(gameTime);
-                if (updateFlowerHealth)
+                //Lake
+                _Lake.Update(gameTime);
+
+                //Flower
+                bool updateFlowerHealth = false;
+                if (gameTime.TotalGameTime - _LastFlowerHealthUpdate > TimeSpan.FromSeconds(1))
                 {
-                    flower.Health -= 4;
+                    _LastFlowerHealthUpdate = gameTime.TotalGameTime;
+                    updateFlowerHealth = true;
                 }
-            }
 
-            _PreviousKeyboardState = Keyboard.GetState();
-            base.Update(gameTime);
+                foreach (var flower in _FlowerList.Where(v => v.Health > 0))
+                {
+                    flower.Update(gameTime);
+                    if (updateFlowerHealth)
+                    {
+                        flower.Health -= 4;
+
+                        if (flower.Health <= 0)
+                        {
+                            _Player.Life--;
+                        }
+                    }
+                }
+
+                if (_Player.Life <= 0)
+                {
+                    _CurrentGameState = GameState.GameOver;
+                }
+
+                if ((DateTime.Now - _StartTime).TotalSeconds / 30 + 1 > _FlowerList.Count)
+                {
+                    LoadFlower(1);
+                }
+
+                _PreviousKeyboardState = Keyboard.GetState();
+                base.Update(gameTime);
+            }
         }
 
         private void UpdatePlayerPosition()
         {
-            float speed = 3;
-
-            for (int i = 0; i < speed; i++)
+            for (int i = 0; i < _Player.Speed; i++)
             {
                 Vector2 newPos = _Player._Position;
                 var kbState = Keyboard.GetState();
@@ -321,31 +346,53 @@ namespace ld46
             GraphicsDevice.Clear(new Color(105,40,13));
             _SpriteBatch.Begin();
 
-            _Lake.Draw(_SpriteBatch);
-
-            var drawList = new List<AEntity>(_FlowerList)
+            if (_CurrentGameState == GameState.Running)
             {
-                _Player
-            }.OrderBy(v => v._Position.Y);
+                _Lake.Draw(_SpriteBatch);
 
-            foreach (var i in drawList)
+                var drawList = new List<AEntity>(_FlowerList)
+                {
+                    _Player
+                }.OrderBy(v => v._Position.Y);
+
+                foreach (var i in drawList)
+                {
+                    i.Draw(_SpriteBatch);
+                }
+
+                float textY = 0;
+                Vector2 textVec;
+                string text;
+
+                //Rundenzeit
+                text = (DateTime.Now - _StartTime).ToString(@"hh\:mm\:ss");
+                textVec = _Font.MeasureString(text);
+                _SpriteBatch.DrawString(_Font, text, new Vector2(0, textY), Color.White);
+                textY += textVec.Y + 5;
+
+                //Anzahl Leben
+                text = "Life: " + _Player.Life;
+                textVec = _Font.MeasureString(text);
+                _SpriteBatch.DrawString(_Font, text, new Vector2(0, textY), Color.White);
+                textY += textVec.Y + 5;
+
+                //Lava
+                _SpriteBatch.DrawString(_Font, "Lava: " + _Player.Water, new Vector2(0, textY), Color.White);
+            }
+            else if (_CurrentGameState == GameState.GameOver)
             {
-                i.Draw(_SpriteBatch);
+                string text = "GAME OVER";
+                var textSize = _Font.MeasureString(text);
+                var textVec = new Vector2(Window.ClientBounds.Width / 2 - textSize.X / 2, Window.ClientBounds.Height / 2 - textSize.Y /2);
+                _SpriteBatch.DrawString(_Font, text, textVec, Color.White);
+
+                text = "Press R to Reset";
+                textSize = _Font.MeasureString(text);
+                textVec = new Vector2(Window.ClientBounds.Width / 2 - textSize.X / 2, textVec.Y + textSize.Y + 5);
+                _SpriteBatch.DrawString(_Font, text, textVec, Color.White);
             }
 
-            float textY = 0;
-            string currentTime = (DateTime.Now - _StartTime).ToString(@"hh\:mm\:ss");
-            var currentTimeTextVec = _Font.MeasureString(currentTime);
-            _SpriteBatch.DrawString(_Font, currentTime, new Vector2(0, textY), Color.White);
-
-            textY += currentTimeTextVec.Y + 5;
-            _SpriteBatch.DrawString(_Font, "Lava: " + _Player.Water, new Vector2(0, textY), Color.White);
-
-            
-
             _SpriteBatch.End();
-
-            // TODO: Add your drawing code here
 
             base.Draw(gameTime);
         }

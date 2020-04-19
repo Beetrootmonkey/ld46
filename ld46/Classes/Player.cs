@@ -10,23 +10,23 @@ namespace ld46.Classes
     public enum PlayerAnimation
     {
         Idle,
-        LookingUp,
         LookingUpRight,
-        LookingRight,
         LookingRightDown,
-        LookingDown,
         LookingDownLeft,
-        LookingLeft,
         LookingLeftUp
     }
 
     sealed class Player : AEntity
     {
         public const int MAX_WATER = 1000;
+        public const int MAX_LIVES = 3;
+        public const int DEFAULT_SPEED = 3;
 
         public override Size TextureSize { get; protected set; }
 
-        public int Water { get; set; }
+        public int Water { get; set; } = MAX_WATER;
+        public int Life { get; set; } = MAX_LIVES;
+        public int Speed { get; set; } = DEFAULT_SPEED;
 
         private bool _CurrentHDirection;
         public bool HDirection
@@ -53,7 +53,6 @@ namespace ld46.Classes
         {
             _Position = position;
             TextureSize = textureSize;
-            Water = MAX_WATER;
         }
 
         public void AddAnimation(PlayerAnimation f, Animation a)
