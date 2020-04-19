@@ -393,12 +393,12 @@ namespace ld46
                 var textVec = new Vector2(Window.ClientBounds.Width / 2 - textSize.X / 2, Window.ClientBounds.Height / 2 - textSize.Y /2);
                 _SpriteBatch.DrawString(_Font, text, textVec, Color.White);
 
-                text = "Awesome :) You survived " + _TimeSurvived.ToString(@"hh\:mm\:ss" + "!");
+                text = "Awesome :) You survived " + _TimeSurvived.ToString(@"hh\:mm\:ss") + "!";
                 textSize = _Font.MeasureString(text);
                 textVec = new Vector2(Window.ClientBounds.Width / 2 - textSize.X / 2, textVec.Y + textSize.Y + 5);
                 _SpriteBatch.DrawString(_Font, text, textVec, Color.White);
 
-                text = "Press R to Reset";
+                text = "Press R to Restart";
                 textSize = _Font.MeasureString(text);
                 textVec = new Vector2(Window.ClientBounds.Width / 2 - textSize.X / 2, textVec.Y + textSize.Y + 20);
                 _SpriteBatch.DrawString(_Font, text, textVec, Color.White);
