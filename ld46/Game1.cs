@@ -20,6 +20,7 @@ namespace ld46
     public class Game1 : Game
     {
         public static bool DebugMode;
+        private DateTime _StartTime;
         private KeyboardState _PreviousKeyboardState;
 
         GraphicsDeviceManager _Graphics;
@@ -74,6 +75,8 @@ namespace ld46
         /// </summary>
         protected override void LoadContent()
         {
+            _StartTime = DateTime.Now;
+
             // Create a new SpriteBatch, which can be used to draw textures.
             _SpriteBatch = new SpriteBatch(GraphicsDevice);
             Spritesheet.Spritesheet sheet;
@@ -91,6 +94,28 @@ namespace ld46
             _Lake.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0),(0, 1),(0, 2),(0, 3),(0, 4),(0, 5),(0, 6),(0, 7)));
 
             //Flower
+            
+
+
+            //Player
+            Size playerTextureSize = new Size(40, 56);
+            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/player_spritesheet")).WithGrid((playerTextureSize.Width, playerTextureSize.Height), (0,0), (0,0));
+            _Player = new Player(new Vector2(100, 100), playerTextureSize);
+            _Player.AddAnimation(PlayerAnimation.Idle, sheet.CreateAnimation((0, 0)));
+            _Player.AddAnimation(PlayerAnimation.LookingUp, sheet.CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1)));
+            _Player.AddAnimation(PlayerAnimation.LookingUpRight, sheet.CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1)));
+            _Player.AddAnimation(PlayerAnimation.LookingRight, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
+            _Player.AddAnimation(PlayerAnimation.LookingRightDown, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
+            _Player.AddAnimation(PlayerAnimation.LookingDown, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
+            _Player.AddAnimation(PlayerAnimation.LookingDownLeft, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
+            _Player.AddAnimation(PlayerAnimation.LookingLeft, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
+            _Player.AddAnimation(PlayerAnimation.LookingLeftUp, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1)));
+
+            //_Player.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
+        }
+
+        private void LoadFlower(Spritesheet.Spritesheet sheet, int count)
+        {
             Size flowerTextureSize = new Size(54, 58);
             sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/skull_spritesheet")).WithGrid((flowerTextureSize.Width, flowerTextureSize.Height), (0,0), (0,0));
             var animationAlive = sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0));
@@ -116,23 +141,6 @@ namespace ld46
 
                 _FlowerList.Add(flower);
             }
-
-
-            //Player
-            Size playerTextureSize = new Size(40, 56);
-            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/player_spritesheet")).WithGrid((playerTextureSize.Width, playerTextureSize.Height), (0,0), (0,0));
-            _Player = new Player(new Vector2(100, 100), playerTextureSize);
-            _Player.AddAnimation(PlayerAnimation.Idle, sheet.CreateAnimation((0, 0)));
-            _Player.AddAnimation(PlayerAnimation.LookingUp, sheet.CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1)));
-            _Player.AddAnimation(PlayerAnimation.LookingUpRight, sheet.CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1)));
-            _Player.AddAnimation(PlayerAnimation.LookingRight, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
-            _Player.AddAnimation(PlayerAnimation.LookingRightDown, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
-            _Player.AddAnimation(PlayerAnimation.LookingDown, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
-            _Player.AddAnimation(PlayerAnimation.LookingDownLeft, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
-            _Player.AddAnimation(PlayerAnimation.LookingLeft, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
-            _Player.AddAnimation(PlayerAnimation.LookingLeftUp, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1)));
-
-            //_Player.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
         }
 
         /// <summary>
@@ -328,7 +336,7 @@ namespace ld46
             }
 
             float textY = 0;
-            string currentTime = gameTime.TotalGameTime.ToString(@"hh\:mm\:ss");
+            string currentTime = (DateTime.Now - _StartTime).ToString(@"hh\:mm\:ss");
             var currentTimeTextVec = _Font.MeasureString(currentTime);
             _SpriteBatch.DrawString(_Font, currentTime, new Vector2(0, textY), Color.White);
 
