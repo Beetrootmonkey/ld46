@@ -94,7 +94,7 @@ namespace ld46
             _Lake.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0),(0, 1),(0, 2),(0, 3),(0, 4),(0, 5),(0, 6),(0, 7)));
 
             //Flower
-            
+            LoadFlower(1);
 
 
             //Player
@@ -114,10 +114,10 @@ namespace ld46
             //_Player.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
         }
 
-        private void LoadFlower(Spritesheet.Spritesheet sheet, int count)
+        private void LoadFlower(int count)
         {
             Size flowerTextureSize = new Size(54, 58);
-            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/skull_spritesheet")).WithGrid((flowerTextureSize.Width, flowerTextureSize.Height), (0,0), (0,0));
+            Spritesheet.Spritesheet sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/skull_spritesheet")).WithGrid((flowerTextureSize.Width, flowerTextureSize.Height), (0,0), (0,0));
             var animationAlive = sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0));
             var animationSick = sheet.CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1));
             var animationDead = sheet.CreateAnimation((0, 2));
