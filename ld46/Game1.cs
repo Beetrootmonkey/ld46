@@ -102,14 +102,12 @@ namespace ld46
             sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/player_spritesheet")).WithGrid((playerTextureSize.Width, playerTextureSize.Height), (0,0), (0,0));
             _Player = new Player(new Vector2(100, 100), playerTextureSize);
             _Player.AddAnimation(PlayerAnimation.Idle, sheet.CreateAnimation((0, 0)));
-            _Player.AddAnimation(PlayerAnimation.LookingUp, sheet.CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1)));
-            _Player.AddAnimation(PlayerAnimation.LookingUpRight, sheet.CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1)));
-            _Player.AddAnimation(PlayerAnimation.LookingRight, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
-            _Player.AddAnimation(PlayerAnimation.LookingRightDown, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
-            _Player.AddAnimation(PlayerAnimation.LookingDown, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
-            _Player.AddAnimation(PlayerAnimation.LookingDownLeft, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
-            _Player.AddAnimation(PlayerAnimation.LookingLeft, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
-            _Player.AddAnimation(PlayerAnimation.LookingLeftUp, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1)));
+            (int x, int y)[] animFront = { (0, 0), (1, 0), (0, 0), (2, 0) };
+            (int x, int y)[] animBack = { (0, 1), (1, 1), (0, 1), (2, 1) };
+            _Player.AddAnimation(PlayerAnimation.LookingUpRight, sheet.CreateAnimation(animBack));
+            _Player.AddAnimation(PlayerAnimation.LookingRightDown, sheet.CreateAnimation(animFront));
+            _Player.AddAnimation(PlayerAnimation.LookingDownLeft, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation(animFront));
+            _Player.AddAnimation(PlayerAnimation.LookingLeftUp, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation(animBack));
 
             //_Player.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
         }
