@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -76,18 +77,19 @@ namespace ld46.Classes
 
             Color healthbarColor;
 
-            if (_Health >= HEALTH_NORMAL)
-            {
-                healthbarColor = new Color(117,237,0);
-            }
-            else if (_Health >= HEALTH_CRITICAL)
-            {
-                healthbarColor = new Color(255,188,0);
-            }
-            else
-            {
-                healthbarColor = new Color(255,91,0);
-            }
+            //if (_Health >= HEALTH_NORMAL)
+            //{
+            //    healthbarColor = new Color(117,237,0);
+            //}
+            //else if (_Health >= HEALTH_CRITICAL)
+            //{
+            //    healthbarColor = new Color(255,188,0);
+            //}
+            //else
+            //{
+            //    healthbarColor = new Color(255,91,0);
+            //}
+            healthbarColor = HealthBarColors.GetColorFromIndex(1 - (float) _Health / HEALTH_MAX);
 
             spriteBatch.FillRectangle(healthbarBgRect, new Color(101,91,89));
             spriteBatch.DrawRectangle(healthbarRahmen, new Color(165,148,146));

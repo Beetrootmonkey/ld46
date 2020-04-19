@@ -44,6 +44,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Classes\AEntity.cs" />
+    <Compile Include="Classes\HealthBarColors.cs" />
     <Compile Include="Classes\Lake.cs" />
     <Compile Include="Classes\Player.cs" />
     <Compile Include="Classes\Flower.cs" />

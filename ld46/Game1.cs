@@ -81,6 +81,9 @@ namespace ld46
             //Font
             _Font = Content.Load<SpriteFont>("Default");
 
+            // HealthbarColorGradient
+            HealthBarColors.Init(Content.Load<Texture2D>("Sprites/health_bar_color_gradient"));
+
             //Lake
             Size lakeTextureSize = new Size(174, 106);
             sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/lake_spritesheet")).WithGrid((lakeTextureSize.Width, lakeTextureSize.Height), (0,0), (0,0));
