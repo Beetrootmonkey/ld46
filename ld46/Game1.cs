@@ -43,6 +43,7 @@ namespace ld46
         private TimeSpan _LastFlowerHealthUpdate;
 
         private Texture2D textureBackGround;
+        Random rnd = new Random();
 
 
         public Game1()
@@ -50,7 +51,6 @@ namespace ld46
 #if DEBUG
             DebugMode = true;
 #endif
-
             _Graphics = new GraphicsDeviceManager(this)
             {
                 PreferredBackBufferWidth = 1216,
@@ -134,15 +134,14 @@ namespace ld46
             var animationSick = sheet.CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1));
             var animationDead = sheet.CreateAnimation((0, 2));
 
-            Random rnd = new Random();
             for (int i = 0; i < count; i++)
             {
                 Flower flower;
                 do
                 {
-                    int w = rnd.Next(10, Window.ClientBounds.Width);
-                    int h = rnd.Next(10, Window.ClientBounds.Height);
-                    flower = new Flower(new Vector2(w, h), flowerTextureSize);
+                    int x = rnd.Next(10, Window.ClientBounds.Width - 20);
+                    int y = rnd.Next(10, Window.ClientBounds.Height - 20);
+                    flower = new Flower(new Vector2(x, y), flowerTextureSize);
                 } while (flower.CollisionBox.Intersects(_Lake.CollisionBox));
 
                 flower.AddAnimation(FlowerAnimation.Alive, animationAlive.Clone());
@@ -173,6 +172,7 @@ namespace ld46
             {
                 Exit();
             }
+            
 
             if (Keyboard.GetState().IsKeyDown(Keys.R) && !_PreviousKeyboardState.IsKeyDown(Keys.R))
             {

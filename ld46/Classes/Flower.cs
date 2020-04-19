@@ -57,6 +57,7 @@ namespace ld46.Classes
             if (Game1.DebugMode)
             {
                 spriteBatch.DrawRectangle(CollisionBox, Color.Green);
+                //spriteBatch.FillRectangle(new Rectangle((int) _Position.X - 2, (int)_Position.Y - 2, 4, 4), Color.Blue);
             }
         }
 
