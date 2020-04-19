@@ -13,36 +13,31 @@ namespace ld46
     /// </summary>
     public class Game1 : Game
     {
-        GraphicsDeviceManager graphics;
-        SpriteBatch spriteBatch;
-        Texture2D texturePerson;
-        Texture2D textureDesk;
-        Texture2D textureFloor;
-        Texture2D textureWall;
+        GraphicsDeviceManager _Graphics;
+        SpriteBatch _SpriteBatch;
 
-        Texture2D mapData;
-        Texture2D mapAreaData;
+        Texture2D _MapData;
+        Texture2D _MapAreaData;
 
-        int mapWidth;
-        int mapHeight;
-        int tileSize;
-        float tileScale;
-        int mapOffsetX;
-        int mapOffsetY;
-        List<ATile[,]> map;
-        List<Person> persons;
+        private SpriteFont _Font;
 
-        Person player;
+        List<Flower> _FlowerList;
+        private Player _Player;
+        private Lake _Lake;
+        private TimeSpan _LastFlowerHealthUpdate;
 
         public Game1()
         {
-            graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferWidth = 1240;
-            graphics.PreferredBackBufferHeight = 800;
+            _Graphics = new GraphicsDeviceManager(this)
+            {
+                PreferredBackBufferWidth = 1240,
+                PreferredBackBufferHeight = 800
+            };
             Window.AllowUserResizing = true;
             Window.ClientSizeChanged += (Object sender, EventArgs e) => OnResizeWindow();
-            graphics.ApplyChanges();
+            _Graphics.ApplyChanges();
             Content.RootDirectory = "Content";
+
         }
 
         /// <summary>
@@ -60,13 +55,6 @@ namespace ld46
 
         protected void OnResizeWindow()
         {
-            int originalTileSize = 40;
-            tileSize = originalTileSize;
-
-            float currentTileSize = Math.Min((float)Window.ClientBounds.Width / mapWidth, (float)Window.ClientBounds.Height / mapHeight);
-            tileScale = currentTileSize / originalTileSize;
-            mapOffsetX = (Window.ClientBounds.Width - Math.Min(Window.ClientBounds.Width, Window.ClientBounds.Height)) / 2;
-            mapOffsetY = (Window.ClientBounds.Height - Math.Min(Window.ClientBounds.Width, Window.ClientBounds.Height)) / 2;
         }
 
         /// <summary>
@@ -76,63 +64,52 @@ namespace ld46
         protected override void LoadContent()
         {
             // Create a new SpriteBatch, which can be used to draw textures.
-            spriteBatch = new SpriteBatch(GraphicsDevice);
-            texturePerson = Content.Load<Texture2D>("Sprites/person");
-            textureDesk = Content.Load<Texture2D>("Sprites/desk");
-            textureFloor = Content.Load<Texture2D>("Sprites/floor");
-            textureWall = Content.Load<Texture2D>("Sprites/wall");
+            _SpriteBatch = new SpriteBatch(GraphicsDevice);
+            Spritesheet.Spritesheet sheet;
 
-            mapData = Content.Load<Texture2D>("MapData/map1");
-            mapAreaData = Content.Load<Texture2D>("MapData/map1_areas");
-            mapWidth = mapData.Width;
-            mapHeight = mapData.Height;
+            //Font
+            _Font = Content.Load<SpriteFont>("Default");
 
-            OnResizeWindow();
+            //Lake
+            Size lakeTextureSize = new Size(174, 106);
+            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/lake_spritesheet")).WithGrid((lakeTextureSize.Width, lakeTextureSize.Height));
+            _Lake = new Lake(new Vector2(200, 200), lakeTextureSize);
+            _Lake.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0),(0, 1),(0, 2),(0, 3),(0, 4),(0, 5),(0, 6),(0, 7)));
 
-            map = new List<ATile[,]>();
-            var wallArray = new WallTile[mapWidth, mapHeight];
-            var areasArray = new AreaTile[mapWidth, mapHeight];
+            //Flower
+            Size flowerTextureSize = new Size(54, 58);
+            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/skull_spritesheet")).WithGrid((flowerTextureSize.Width, flowerTextureSize.Height));
+            var animationAlive = sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0));
+            var animationSick = sheet.CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1));
+            var animationDead = sheet.CreateAnimation((0, 2));
 
-            map.Add(wallArray);
-            map.Add(areasArray);
+            _FlowerList = new List<Flower>();
 
-            var colors = new Color[mapWidth * mapHeight];
-
-            mapData.GetData<Color>(colors);
-            for (int j = 0; j < mapHeight; j++)
+            Random rnd = new Random();
+            for (int i = 0; i < 1; i++)
             {
-                for (int i = 0; i < mapWidth; i++)
+                Flower flower;
+                do
                 {
-                    Color color = colors[i + j * mapWidth];
-                    if (color == new Color(255, 255, 255))
-                    {
-                        wallArray[i, j] = new WallTile(textureWall);
-                    }
-                    else if (color == new Color(124, 95, 65))
-                    {
-                        wallArray[i, j] = new WallTile(textureDesk);
-                    }
-                }
+                    int w = rnd.Next(10, Window.ClientBounds.Width);
+                    int h = rnd.Next(10, Window.ClientBounds.Height);
+                    flower = new Flower(new Vector2(w, h), flowerTextureSize);
+                } while (flower.CollisionBox.Intersects(_Lake.CollisionBox));
+
+                flower.AddAnimation(FlowerAnimation.Alive, animationAlive.Clone());
+                flower.AddAnimation(FlowerAnimation.Sick, animationSick.Clone());
+                flower.AddAnimation(FlowerAnimation.Dead, animationDead.Clone());
+
+                _FlowerList.Add(flower);
             }
 
-            mapAreaData.GetData<Color>(colors);
-            for (int j = 0; j < mapHeight; j++)
-            {
-                for (int i = 0; i < mapWidth; i++)
-                {
-                    Color color = colors[i + j * mapWidth];
-                    if (color.A != 0)
-                    {
-                        areasArray[i, j] = new AreaTile(color);
-                    }
-                }
-            }
 
-            persons = new List<Person>();
-            player = new Person(new Vector2(100, 100));
-            persons.Add(player);
-
-            // TODO: use this.Content to load your game content here
+            //Player
+            Size playerTextureSize = new Size(40, 56);
+            var size = (playerTextureSize.Width, playerTextureSize.Height);
+            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/player_spritesheet")).WithGrid(size, size);
+            _Player = new Player(new Vector2(100, 100), playerTextureSize, sheet);
+            _Player.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
         }
 
         /// <summary>
@@ -152,31 +129,110 @@ namespace ld46
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            {
                 Exit();
-
-            float speed = 3;
-
-            if (Keyboard.GetState().IsKeyDown(Keys.W))
-            {
-                player.position += new Vector2(0, -1) * speed;
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.A))
-            {
-                player.position += new Vector2(-1, 0) * speed;
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.S))
-            {
-                player.position += new Vector2(0, 1) * speed;
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.D))
-            {
-                player.position += new Vector2(1, 0) * speed;
             }
 
-            // TODO: Add your update logic here
+            if (Keyboard.GetState().IsKeyDown(Keys.R))
+            {
+                LoadContent();
+            }
 
+            //Player
+            _Player.Update(gameTime);
+            UpdatePlayerPosition();
+
+            //Lake
+            _Lake.Update(gameTime);
+
+            //Flower
+            bool updateFlowerHealth = false;
+            if (gameTime.TotalGameTime - _LastFlowerHealthUpdate > TimeSpan.FromSeconds(1))
+            {
+                _LastFlowerHealthUpdate = gameTime.TotalGameTime;
+                updateFlowerHealth = true;
+            }
+
+            foreach (var flower in _FlowerList)
+            {
+                flower.Update(gameTime);
+                if (updateFlowerHealth)
+                {
+                    flower.Health -= 4;
+                }
+            }
             base.Update(gameTime);
         }
+
+        private void UpdatePlayerPosition()
+        {
+            float speed = 3;
+
+            for (int i = 0; i < speed; i++)
+            {
+                Vector2 newPos = _Player._Position;
+                if (Keyboard.GetState().IsKeyDown(Keys.Up))
+                {
+                    newPos += new Vector2(0, -1);
+                }
+                if (Keyboard.GetState().IsKeyDown(Keys.Left))
+                {
+                    newPos += new Vector2(-1, 0);
+                }
+                if (Keyboard.GetState().IsKeyDown(Keys.Down))
+                {
+                    newPos += new Vector2(0, 1);
+                }
+                if (Keyboard.GetState().IsKeyDown(Keys.Right))
+                {
+                    newPos += new Vector2(1, 0);
+                }
+
+                if (newPos == _Player._Position)
+                {
+                    return;
+                }
+
+                var newCollissionBox = _Player.CalcCollissionBox(newPos);
+
+                //Kollision Blumen
+                if (_Player.Water > 0)
+                {
+                    foreach (var flower in _FlowerList)
+                    {
+                        if (flower.Health != Flower.HEALTH_MAX 
+                            && flower.Health != 0
+                            && newCollissionBox.Intersects(flower.CollisionBox))
+                        {
+                            int healthLost = Flower.HEALTH_MAX - flower.Health;
+
+                            int heal = Math.Min(_Player.Water, healthLost);
+                            flower.Health += heal;
+                            _Player.Water -= heal;
+                        }
+                    }
+                }
+
+                //Kollision See
+                if(newCollissionBox.Intersects(_Lake.CollisionBox))
+                {
+                    if (_Player.Water != Player.MAX_WATER)
+                    {
+                        _Player.Water = Player.MAX_WATER;
+                    }
+                    return;
+                }
+                
+
+                //Kollision Kanten
+                if (newPos.X >= 0 && newPos.Y >= 0
+                && newCollissionBox.Right <= Window.ClientBounds.Width && newCollissionBox.Bottom <= Window.ClientBounds.Height)
+                {
+                    _Player._Position = newPos;
+                }
+            }
+        }
+
 
         /// <summary>
         /// This is called when the game should draw itself.
@@ -184,30 +240,21 @@ namespace ld46
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.White);
-            spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
+            GraphicsDevice.Clear(new Color(105,40,13));
+            _SpriteBatch.Begin();
 
-            foreach (var layer in map)
+            _Lake.Draw(_SpriteBatch);
+
+            foreach (var flower in _FlowerList)
             {
-                for (int j = 0; j < mapHeight; j++)
-                {
-                    for (int i = 0; i < mapWidth; i++)
-                    {
-                        if (layer[i, j] != null)
-                        {
-                            layer[i, j].Draw(spriteBatch, i, j, tileSize, tileScale, mapOffsetX, mapOffsetY);
-                        }
-                    }
-                }
+                flower.Draw(_SpriteBatch);
             }
 
-            foreach (var person in persons)
-            {
-                person.Draw(spriteBatch, texturePerson, tileScale, mapOffsetX, mapOffsetY);
-            }
+            _Player.Draw(_SpriteBatch);
+            
+            _SpriteBatch.DrawString(_Font, "Lava: " + _Player.Water, Vector2.Zero, Color.White);
 
-
-            spriteBatch.End();
+            _SpriteBatch.End();
 
             // TODO: Add your drawing code here
 
