@@ -23,8 +23,6 @@ namespace ld46.Classes
         public static Color GetColorFromIndex(float index)
         {
             int colorIndex = MathHelper.Clamp((int) Math.Round(index * colors.Length), 0, colors.Length - 1);
-            Console.Out.WriteLine(index + " " + colorIndex);
-
             return colors[colorIndex];
         }
 
