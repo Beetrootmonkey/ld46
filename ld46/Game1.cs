@@ -27,6 +27,7 @@ namespace ld46
     {
         public static bool DebugMode;
         private DateTime _StartTime;
+        private TimeSpan _TimeSurvived;
         private KeyboardState _PreviousKeyboardState;
 
         private GameState _CurrentGameState;
@@ -224,6 +225,7 @@ namespace ld46
 
                 if (_Player.Life <= 0)
                 {
+                    _TimeSurvived = DateTime.Now - _StartTime;
                     _CurrentGameState = GameState.GameOver;
                 }
 
@@ -387,9 +389,14 @@ namespace ld46
                 var textVec = new Vector2(Window.ClientBounds.Width / 2 - textSize.X / 2, Window.ClientBounds.Height / 2 - textSize.Y /2);
                 _SpriteBatch.DrawString(_Font, text, textVec, Color.White);
 
-                text = "Press R to Reset";
+                text = "Awesome :) You survived " + _TimeSurvived.ToString(@"hh\:mm\:ss") + "!";
                 textSize = _Font.MeasureString(text);
                 textVec = new Vector2(Window.ClientBounds.Width / 2 - textSize.X / 2, textVec.Y + textSize.Y + 5);
+                _SpriteBatch.DrawString(_Font, text, textVec, Color.White);
+
+                text = "Press R to Restart";
+                textSize = _Font.MeasureString(text);
+                textVec = new Vector2(Window.ClientBounds.Width / 2 - textSize.X / 2, textVec.Y + textSize.Y + 20);
                 _SpriteBatch.DrawString(_Font, text, textVec, Color.White);
             }
 
