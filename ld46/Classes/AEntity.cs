@@ -27,7 +27,7 @@ namespace ld46.Classes
             AnimationDictionary = new Dictionary<int, Animation>();
         }
 
-        public Rectangle CalcCollissionBox(Vector2 v)
+        public virtual Rectangle CalcCollissionBox(Vector2 v)
         {
             return new Rectangle((int) (v.X), (int) (v.Y), TextureSize.Width, TextureSize.Height);
         }

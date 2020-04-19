@@ -53,9 +53,10 @@ namespace ld46.Classes
             
             DrawFlower(spriteBatch);
             spriteBatch.Draw(CurrentAnimation, _Position);
-#if DEBUG
-            spriteBatch.DrawRectangle(CollisionBox, Color.Green);
-#endif
+            if (Game1.DebugMode)
+            {
+                spriteBatch.DrawRectangle(CollisionBox, Color.Green);
+            }
         }
 
         public void AddAnimation(FlowerAnimation f, Animation a)

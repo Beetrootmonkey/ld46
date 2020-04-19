@@ -26,9 +26,10 @@ namespace ld46.Classes
             }
             spriteBatch.Draw(CurrentAnimation, _Position);
 
-#if DEBUG
-            spriteBatch.DrawRectangle(CollisionBox, Color.Green);
-#endif
+            if (Game1.DebugMode)
+            {
+                spriteBatch.DrawRectangle(CollisionBox, Color.Green);
+            }
         }
     }
 }

@@ -5,6 +5,11 @@ using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
 using System;
 using System.Collections.Generic;
+using MonoGame.Extended.Animations;
+using MonoGame.Extended.Animations.SpriteSheets;
+using Newtonsoft.Json.Linq;
+using Spritesheet;
+using Animation = Spritesheet.Animation;
 
 namespace ld46
 {
@@ -13,11 +18,11 @@ namespace ld46
     /// </summary>
     public class Game1 : Game
     {
+        public static bool DebugMode;
+        public TimeSpan LastKeyboardAction;
+
         GraphicsDeviceManager _Graphics;
         SpriteBatch _SpriteBatch;
-
-        Texture2D _MapData;
-        Texture2D _MapAreaData;
 
         private SpriteFont _Font;
 
@@ -26,8 +31,13 @@ namespace ld46
         private Lake _Lake;
         private TimeSpan _LastFlowerHealthUpdate;
 
+
         public Game1()
         {
+#if DEBUG
+            DebugMode = true;
+#endif
+
             _Graphics = new GraphicsDeviceManager(this)
             {
                 PreferredBackBufferWidth = 1240,
@@ -37,7 +47,6 @@ namespace ld46
             Window.ClientSizeChanged += (Object sender, EventArgs e) => OnResizeWindow();
             _Graphics.ApplyChanges();
             Content.RootDirectory = "Content";
-
         }
 
         /// <summary>
@@ -72,13 +81,13 @@ namespace ld46
 
             //Lake
             Size lakeTextureSize = new Size(174, 106);
-            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/lake_spritesheet")).WithGrid((lakeTextureSize.Width, lakeTextureSize.Height));
-            _Lake = new Lake(new Vector2(200, 200), lakeTextureSize);
+            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/lake_spritesheet")).WithGrid((lakeTextureSize.Width, lakeTextureSize.Height), (0,0), (0,0));
+            _Lake = new Lake(new Vector2(Window.ClientBounds.Width / 2 - lakeTextureSize.Width/2, Window.ClientBounds.Height/2- lakeTextureSize.Height/2), lakeTextureSize);
             _Lake.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0),(0, 1),(0, 2),(0, 3),(0, 4),(0, 5),(0, 6),(0, 7)));
 
             //Flower
             Size flowerTextureSize = new Size(54, 58);
-            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/skull_spritesheet")).WithGrid((flowerTextureSize.Width, flowerTextureSize.Height));
+            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/skull_spritesheet")).WithGrid((flowerTextureSize.Width, flowerTextureSize.Height), (0,0), (0,0));
             var animationAlive = sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0));
             var animationSick = sheet.CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1));
             var animationDead = sheet.CreateAnimation((0, 2));
@@ -106,10 +115,19 @@ namespace ld46
 
             //Player
             Size playerTextureSize = new Size(40, 56);
-            var size = (playerTextureSize.Width, playerTextureSize.Height);
-            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/player_spritesheet")).WithGrid(size, size);
-            _Player = new Player(new Vector2(100, 100), playerTextureSize, sheet);
-            _Player.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
+            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/player_spritesheet")).WithGrid((playerTextureSize.Width, playerTextureSize.Height), (0,0), (0,0));
+            _Player = new Player(new Vector2(100, 100), playerTextureSize);
+            _Player.AddAnimation(PlayerAnimation.Idle, sheet.CreateAnimation((0, 0)));
+            _Player.AddAnimation(PlayerAnimation.LookingUp, sheet.CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1)));
+            _Player.AddAnimation(PlayerAnimation.LookingUpRight, sheet.CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1)));
+            _Player.AddAnimation(PlayerAnimation.LookingRight, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
+            _Player.AddAnimation(PlayerAnimation.LookingRightDown, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
+            _Player.AddAnimation(PlayerAnimation.LookingDown, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
+            _Player.AddAnimation(PlayerAnimation.LookingDownLeft, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
+            _Player.AddAnimation(PlayerAnimation.LookingLeft, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
+            _Player.AddAnimation(PlayerAnimation.LookingLeftUp, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1)));
+
+            //_Player.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0)));
         }
 
         /// <summary>
@@ -133,10 +151,20 @@ namespace ld46
                 Exit();
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.R))
+            if(gameTime.TotalGameTime - LastKeyboardAction > TimeSpan.FromSeconds(1))
             {
-                LoadContent();
+                LastKeyboardAction = gameTime.TotalGameTime;
+                if (Keyboard.GetState().IsKeyDown(Keys.R))
+                {
+                    LoadContent();
+                }
+
+                if (Keyboard.GetState().IsKeyDown(Keys.LeftControl) && Keyboard.GetState().IsKeyDown(Keys.D))
+                {
+                    DebugMode = !DebugMode;
+                }
             }
+            
 
             //Player
             _Player.Update(gameTime);
@@ -171,21 +199,55 @@ namespace ld46
             for (int i = 0; i < speed; i++)
             {
                 Vector2 newPos = _Player._Position;
-                if (Keyboard.GetState().IsKeyDown(Keys.Up))
+                var kbState = Keyboard.GetState();
+
+                if (kbState.IsKeyDown(Keys.Up) && kbState.IsKeyDown(Keys.Right))
                 {
+                    _Player.VDirection = true;
+                    _Player.HDirection = true;
+                    newPos += new Vector2(1, -1);
+                }
+                else if (kbState.IsKeyDown(Keys.Right) && kbState.IsKeyDown(Keys.Down))
+                {
+                    _Player.VDirection = false;
+                    _Player.HDirection = true;
+                    newPos += new Vector2(1, 1);
+                }
+                else if (kbState.IsKeyDown(Keys.Down) && kbState.IsKeyDown(Keys.Left))
+                {
+                    _Player.VDirection = false;
+                    _Player.HDirection = false;
+                    newPos += new Vector2(-1, 1);
+                }
+                else if (kbState.IsKeyDown(Keys.Left) && kbState.IsKeyDown(Keys.Up))
+                {
+                    _Player.VDirection = true;
+                    _Player.HDirection = false;
+                    newPos += new Vector2(-1, -1);
+                }
+                else if (kbState.IsKeyDown(Keys.Up))
+                {
+                    _Player.VDirection = true;
                     newPos += new Vector2(0, -1);
                 }
-                if (Keyboard.GetState().IsKeyDown(Keys.Left))
+                else if (kbState.IsKeyDown(Keys.Left))
                 {
+                    _Player.HDirection = false;
                     newPos += new Vector2(-1, 0);
                 }
-                if (Keyboard.GetState().IsKeyDown(Keys.Down))
+                else if (kbState.IsKeyDown(Keys.Down))
                 {
+                    _Player.VDirection = false;
                     newPos += new Vector2(0, 1);
                 }
-                if (Keyboard.GetState().IsKeyDown(Keys.Right))
+                else if (kbState.IsKeyDown(Keys.Right))
                 {
+                    _Player.HDirection = true;
                     newPos += new Vector2(1, 0);
+                }
+                else
+                {
+                    _Player.Idle();
                 }
 
                 if (newPos == _Player._Position)
