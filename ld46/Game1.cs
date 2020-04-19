@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MonoGame.Extended.Animations;
 using MonoGame.Extended.Animations.SpriteSheets;
 using Newtonsoft.Json.Linq;
@@ -19,7 +20,7 @@ namespace ld46
     public class Game1 : Game
     {
         public static bool DebugMode;
-        public TimeSpan LastKeyboardAction;
+        private KeyboardState _PreviousKeyboardState;
 
         GraphicsDeviceManager _Graphics;
         SpriteBatch _SpriteBatch;
@@ -59,6 +60,7 @@ namespace ld46
         {
             // TODO: Add your initialization logic here
             IsMouseVisible = true;
+            _PreviousKeyboardState = Keyboard.GetState();
             base.Initialize();
         }
 
@@ -151,20 +153,21 @@ namespace ld46
                 Exit();
             }
 
-            if(gameTime.TotalGameTime - LastKeyboardAction > TimeSpan.FromSeconds(1))
+            if (Keyboard.GetState().IsKeyDown(Keys.R) && !_PreviousKeyboardState.IsKeyDown(Keys.R))
             {
-                LastKeyboardAction = gameTime.TotalGameTime;
-                if (Keyboard.GetState().IsKeyDown(Keys.R))
-                {
-                    LoadContent();
-                }
+                LoadContent();
+            }
 
-                if (Keyboard.GetState().IsKeyDown(Keys.LeftControl) && Keyboard.GetState().IsKeyDown(Keys.D))
-                {
-                    DebugMode = !DebugMode;
-                }
+            if (Keyboard.GetState().IsKeyDown(Keys.LeftControl) && Keyboard.GetState().IsKeyDown(Keys.D) 
+                    && !_PreviousKeyboardState.IsKeyDown(Keys.D))
+            {
+                DebugMode = !DebugMode;
             }
             
+            if (Keyboard.GetState().IsKeyDown(Keys.N) && !_PreviousKeyboardState.IsKeyDown(Keys.N))
+            {
+                //Neue Blume
+            }
 
             //Player
             _Player.Update(gameTime);
@@ -189,6 +192,8 @@ namespace ld46
                     flower.Health -= 4;
                 }
             }
+
+            _PreviousKeyboardState = Keyboard.GetState();
             base.Update(gameTime);
         }
 
@@ -258,13 +263,13 @@ namespace ld46
                 var newCollissionBox = _Player.CalcCollissionBox(newPos);
 
                 //Kollision Blumen
-                if (_Player.Water > 0)
+                foreach (var flower in _FlowerList)
                 {
-                    foreach (var flower in _FlowerList)
+                    if (newCollissionBox.Intersects(flower.CollisionBox))
                     {
-                        if (flower.Health != Flower.HEALTH_MAX 
-                            && flower.Health != 0
-                            && newCollissionBox.Intersects(flower.CollisionBox))
+                        if (_Player.Water > 0
+                            && flower.Health != Flower.HEALTH_MAX 
+                            && flower.Health != 0)
                         {
                             int healthLost = Flower.HEALTH_MAX - flower.Health;
 
@@ -272,6 +277,8 @@ namespace ld46
                             flower.Health += heal;
                             _Player.Water -= heal;
                         }
+
+                        return;
                     }
                 }
 
@@ -307,14 +314,25 @@ namespace ld46
 
             _Lake.Draw(_SpriteBatch);
 
-            foreach (var flower in _FlowerList)
+            var drawList = new List<AEntity>(_FlowerList)
             {
-                flower.Draw(_SpriteBatch);
+                _Player
+            }.OrderBy(v => v._Position.Y);
+
+            foreach (var i in drawList)
+            {
+                i.Draw(_SpriteBatch);
             }
 
-            _Player.Draw(_SpriteBatch);
+            float textY = 0;
+            string currentTime = gameTime.TotalGameTime.ToString(@"hh\:mm\:ss");
+            var currentTimeTextVec = _Font.MeasureString(currentTime);
+            _SpriteBatch.DrawString(_Font, currentTime, new Vector2(0, textY), Color.White);
+
+            textY += currentTimeTextVec.Y + 5;
+            _SpriteBatch.DrawString(_Font, "Lava: " + _Player.Water, new Vector2(0, textY), Color.White);
+
             
-            _SpriteBatch.DrawString(_Font, "Lava: " + _Player.Water, Vector2.Zero, Color.White);
 
             _SpriteBatch.End();
 

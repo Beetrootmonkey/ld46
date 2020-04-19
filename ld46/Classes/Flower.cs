@@ -127,5 +127,13 @@ namespace ld46.Classes
 
             CurrentAnimation.Start(Repeat.Mode.Loop);
         }
+
+        public override Rectangle CalcCollissionBox(Vector2 v)
+        {
+            int h = TextureSize.Height / 2;
+            float y = v.Y + h;
+
+            return new Rectangle((int) (v.X), (int) (y), TextureSize.Width, h);
+        }
     }
 }
