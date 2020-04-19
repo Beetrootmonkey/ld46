@@ -241,101 +241,97 @@ namespace ld46
         {
             for (int i = 0; i < _Player.Speed; i++)
             {
-                Vector2 newPos = _Player._Position;
+                Vector2 offsetX = Vector2.Zero;
+                Vector2 offsetY = Vector2.Zero;
                 var kbState = Keyboard.GetState();
+                bool idle = true;
 
-                if (kbState.IsKeyDown(Keys.Up) && kbState.IsKeyDown(Keys.Right))
+                if (kbState.IsKeyDown(Keys.Up))
                 {
                     _Player.VDirection = true;
-                    _Player.HDirection = true;
-                    newPos += new Vector2(1, -1);
+                    offsetY += new Vector2(0, -1);
+                    idle = false;
                 }
-                else if (kbState.IsKeyDown(Keys.Right) && kbState.IsKeyDown(Keys.Down))
-                {
-                    _Player.VDirection = false;
-                    _Player.HDirection = true;
-                    newPos += new Vector2(1, 1);
-                }
-                else if (kbState.IsKeyDown(Keys.Down) && kbState.IsKeyDown(Keys.Left))
-                {
-                    _Player.VDirection = false;
-                    _Player.HDirection = false;
-                    newPos += new Vector2(-1, 1);
-                }
-                else if (kbState.IsKeyDown(Keys.Left) && kbState.IsKeyDown(Keys.Up))
-                {
-                    _Player.VDirection = true;
-                    _Player.HDirection = false;
-                    newPos += new Vector2(-1, -1);
-                }
-                else if (kbState.IsKeyDown(Keys.Up))
-                {
-                    _Player.VDirection = true;
-                    newPos += new Vector2(0, -1);
-                }
-                else if (kbState.IsKeyDown(Keys.Left))
+                if (kbState.IsKeyDown(Keys.Left))
                 {
                     _Player.HDirection = false;
-                    newPos += new Vector2(-1, 0);
+                    offsetX += new Vector2(-1, 0);
+                    idle = false;
                 }
-                else if (kbState.IsKeyDown(Keys.Down))
+                if (kbState.IsKeyDown(Keys.Down))
                 {
                     _Player.VDirection = false;
-                    newPos += new Vector2(0, 1);
+                    offsetY += new Vector2(0, 1);
+                    idle = false;
                 }
-                else if (kbState.IsKeyDown(Keys.Right))
+                if (kbState.IsKeyDown(Keys.Right))
                 {
                     _Player.HDirection = true;
-                    newPos += new Vector2(1, 0);
+                    offsetX += new Vector2(1, 0);
+                    idle = false;
                 }
-                else
+                if (idle)
                 {
                     _Player.Idle();
                 }
 
-                if (newPos == _Player._Position)
-                {
-                    return;
-                }
+                var validOffsets = new List<Vector2>();
 
-                var newCollissionBox = _Player.CalcCollissionBox(newPos);
 
-                //Kollision Blumen
-                foreach (var flower in _FlowerList)
+                foreach (var offset in new Vector2[] { offsetX, offsetY })
                 {
-                    if (newCollissionBox.Intersects(flower.CollisionBox))
+                    var newPlayerPos = _Player._Position + offset;
+                    if (newPlayerPos == _Player._Position)
                     {
-                        if (_Player.Water > 0
-                            && flower.Health != Flower.HEALTH_MAX 
-                            && flower.Health != 0)
+                        continue;
+                    }
+
+                    var newCollissionBox = _Player.CalcCollissionBox(newPlayerPos);
+                    bool collisionWithFlower = false;
+
+                    //Kollision Blumen
+                    foreach (var flower in _FlowerList)
+                    {
+                        if (newCollissionBox.Intersects(flower.CollisionBox))
                         {
-                            int healthLost = Flower.HEALTH_MAX - flower.Health;
+                            if (_Player.Water > 0
+                                && flower.Health != Flower.HEALTH_MAX
+                                && flower.Health != 0)
+                            {
+                                int healthLost = Flower.HEALTH_MAX - flower.Health;
 
-                            int heal = Math.Min(_Player.Water, healthLost);
-                            flower.Health += heal;
-                            _Player.Water -= heal;
+                                int heal = Math.Min(_Player.Water, healthLost);
+                                flower.Health += heal;
+                                _Player.Water -= heal;
+                            }
+
+                            collisionWithFlower = true;
+                            break;
                         }
-
-                        return;
                     }
-                }
 
-                //Kollision See
-                if(newCollissionBox.Intersects(_Lake.CollisionBox))
-                {
-                    if (_Player.Water != Player.MAX_WATER)
+                    if (collisionWithFlower)
                     {
-                        _Player.Water = Player.MAX_WATER;
+                        continue;
                     }
-                    return;
-                }
-                
 
-                //Kollision Kanten
-                if (newPos.X >= 0 && newPos.Y >= 0
-                && newCollissionBox.Right <= Window.ClientBounds.Width && newCollissionBox.Bottom <= Window.ClientBounds.Height)
-                {
-                    _Player._Position = newPos;
+                    //Kollision See
+                    if (newCollissionBox.Intersects(_Lake.CollisionBox))
+                    {
+                        if (_Player.Water != Player.MAX_WATER)
+                        {
+                            _Player.Water = Player.MAX_WATER;
+                        }
+                        continue;
+                    }
+
+
+                    //Kollision Kanten
+                    if (newPlayerPos.X >= 0 && newPlayerPos.Y >= 0
+                    && newCollissionBox.Right <= Window.ClientBounds.Width && newCollissionBox.Bottom <= Window.ClientBounds.Height)
+                    {
+                        _Player._Position += offset;
+                    }
                 }
             }
         }
