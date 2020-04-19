@@ -41,6 +41,8 @@ namespace ld46
         private Lake _Lake;
         private TimeSpan _LastFlowerHealthUpdate;
 
+        private Texture2D textureBackGround;
+
 
         public Game1()
         {
@@ -117,6 +119,8 @@ namespace ld46
             _Player.AddAnimation(PlayerAnimation.LookingRightDown, sheet.CreateAnimation(animFront));
             _Player.AddAnimation(PlayerAnimation.LookingDownLeft, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation(animFront));
             _Player.AddAnimation(PlayerAnimation.LookingLeftUp, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation(animBack));
+
+            textureBackGround = Content.Load<Texture2D>("Sprites/background");
 
             _CurrentGameState = GameState.Running;
         }
@@ -348,6 +352,7 @@ namespace ld46
 
             if (_CurrentGameState == GameState.Running)
             {
+                _SpriteBatch.Draw(textureBackGround, Vector2.Zero, Color.White);
                 _Lake.Draw(_SpriteBatch);
 
                 var drawList = new List<AEntity>(_FlowerList)
