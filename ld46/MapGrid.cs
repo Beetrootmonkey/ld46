@@ -65,7 +65,7 @@ namespace ld46
                 var t = _GridArr[i];
                 if (t.Item1 == randomTile.Item1)
                 {
-                    var newPos = new Vector2(t.Item1.X + rdmXPos, t.Item1.Y - rdmYPos);
+                    var newPos = new Vector2(t.Item1.X + rdmXPos, t.Item1.Y + rdmYPos);
                     _GridArr[i].Item2 = true;
                     return newPos;
                 }

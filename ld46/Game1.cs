@@ -44,6 +44,7 @@ namespace ld46
 
         private int _ActiveFlowerCount;
         private List<Flower> _FlowerList;
+        private List<APowerupBase> _PowerupList;
         
         private TimeSpan _LastFlowerHealthUpdate;
 
@@ -155,33 +156,38 @@ namespace ld46
             //Flower
             _ActiveFlowerCount = 2;
             _FlowerList = new List<Flower>();
-            LoadFlower(10, Flower.HEALTH_DEAD);
-            LoadFlower(_ActiveFlowerCount);
+            SpawnFlower(10, Flower.HEALTH_DEAD);
+            SpawnFlower(_ActiveFlowerCount);
+
+            //Powerup
+            _PowerupList = new List<APowerupBase>();
+            SpawnPowerup();
 
             _TextureBackGround = Content.Load<Texture2D>("Sprites/background");
 
             _CurrentGameState = GameState.Running;
         }
 
-        private void LoadFlower(int count, int health = Flower.HEALTH_MAX)
+        private void SpawnPowerup()
+        {
+            var powerup = new SpeedPowerup();
+            var vec = _MapGrid.GetFreePosition(powerup.GetCollisionBoxSize());
+            powerup.Position = vec;
+            _PowerupList.Add(powerup);
+        }
+
+        private void SpawnFlower(int count, int health = Flower.HEALTH_MAX)
         {
             Spritesheet.Spritesheet sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/skull_spritesheet")).WithGrid((Flower.FlowerTextureSize.Width, Flower.FlowerTextureSize.Height), (0,0), (0,0));
             var animationAlive = sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0));
             var animationSick = sheet.CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1));
             var animationDead = sheet.CreateAnimation((0, 2));
 
-            Random rnd = new Random();
             for (int i = 0; i < count; i++)
             {
                 var flower = new Flower(health);
                 var vec = _MapGrid.GetFreePosition(flower.GetCollisionBoxSize());
                 flower.Position = vec;
-                //do
-                //{
-                //    int w = rnd.Next(10, Window.ClientBounds.Width);
-                //    int h = rnd.Next(10, Window.ClientBounds.Height);
-                //    flower = new Flower(new Vector2(w, h), flowerTextureSize);
-                //} while (flower.CollisionBox.Intersects(_Lake.CollisionBox));
 
                 flower.AddAnimation(FlowerAnimation.Alive, animationAlive.Clone());
                 flower.AddAnimation(FlowerAnimation.Sick, animationSick.Clone());
@@ -231,7 +237,7 @@ namespace ld46
 
             if (Keyboard.GetState().IsKeyDown(Keys.N) && !_PreviousKeyboardState.IsKeyDown(Keys.N))
             {
-                LoadFlower(1);
+                SpawnFlower(1);
             }
 #endif
             
@@ -275,8 +281,8 @@ namespace ld46
                 if ((DateTime.Now - _StartTime).TotalSeconds / 20 + 1> _ActiveFlowerCount)
                 {
                     _ActiveFlowerCount++;
-                    LoadFlower(1);
-                    LoadFlower(1, Flower.HEALTH_DEAD);
+                    SpawnFlower(1);
+                    SpawnFlower(1, Flower.HEALTH_DEAD);
                 }
 
                 _PreviousKeyboardState = Keyboard.GetState();
@@ -380,6 +386,17 @@ namespace ld46
                         continue;
                     }
 
+                    //Killision Powerup
+                    for (var j = 0; j < _PowerupList.Count; j++)
+                    {
+                        var powerup = _PowerupList[j];
+                        if (newCollissionBox.Intersects(powerup.CollisionBox))
+                        {
+                            _PowerupList.Remove(powerup);
+                            powerup.Consume(_Player);
+                        }
+                    }
+
 
                     //Kollision Kanten
                     if (newPlayerPos.X >= 0 && newPlayerPos.Y >= 0
@@ -398,8 +415,8 @@ namespace ld46
                     PlaySoundEffect(_SoundEffects.PlayerWalk, (float)rnd.NextDouble() * 0.05f + 0.1f, (float)rnd.NextDouble() * 0.2f);
                 }
 
-                _Player.WalkSoundCounter++;
-                _Player.WalkSoundCounter %= 20;
+                _Player.WalkSoundCounter+=_Player.Speed;
+                _Player.WalkSoundCounter %= 60;
             }
             else
             {
@@ -430,12 +447,12 @@ namespace ld46
                     }
                 }
 
-                var drawList = new List<AEntity>(_FlowerList)
-                {
-                    _Player
-                }.OrderBy(v => v.Position.Y);
+                var drawList = new List<AEntity>();
+                drawList.AddRange(_FlowerList);
+                drawList.Add(_Player);
+                drawList.AddRange(_PowerupList);
 
-                foreach (var i in drawList)
+                foreach (var i in drawList.OrderBy(v => v.Position.Y))
                 {
                     i.Draw(_SpriteBatch);
                 }
