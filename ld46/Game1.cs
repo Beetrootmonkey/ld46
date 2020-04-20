@@ -51,10 +51,9 @@ namespace ld46
         private Texture2D _TextureBackGround;
         Random rnd = new Random();
 
-        (SoundEffect FlowerGrow, SoundEffect PlayerWalk, SoundEffect GatherWater) _SoundEffects;
+        (SoundEffect FlowerGrow, SoundEffect PlayerWalk, SoundEffect GatherWater, SoundEffect CollectItem) _SoundEffects;
         public static bool PlaySoundEffects = true;
-        (Texture2D SoundOn, Texture2D SoundOff) _SoundTextures;
-        private Texture2D textureBackGround;
+        (Texture2D SoundOn, Texture2D SoundOff) _IconTextures;
         private MapGrid _MapGrid;
 
         public Game1()
@@ -116,10 +115,11 @@ namespace ld46
             _SoundEffects = (
                 Content.Load<SoundEffect>("Sounds/Fire"),
                 Content.Load<SoundEffect>("Sounds/Walk_fast"),
-                Content.Load<SoundEffect>("Sounds/Fill"));
+                Content.Load<SoundEffect>("Sounds/Fill"),
+                Content.Load<SoundEffect>("Sounds/Powerup"));
 
-            // Texturen für Sound-Icons laden
-            _SoundTextures = (
+            // Texturen für Icons laden
+            _IconTextures = (
                 Content.Load<Texture2D>("Sprites/icon_sound_on"),
                 Content.Load<Texture2D>("Sprites/icon_sound_off"));
 
@@ -170,9 +170,19 @@ namespace ld46
 
         private void SpawnPowerup()
         {
+            Spritesheet.Spritesheet sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/items_spritesheet")).WithGrid((Flower.FlowerTextureSize.Width, Flower.FlowerTextureSize.Height), (0, 0), (0, 0));
+            var animationBrownBoot = sheet.CreateAnimation((0, 1));
+            var animationBlackBoot = sheet.CreateAnimation((2, 1));
+            var animationBluePearl = sheet.CreateAnimation((0, 0));
+            var animationRedHeart = sheet.CreateAnimation((1, 0));
+            var animationGoldenFruit = sheet.CreateAnimation((2, 0));
+
             var powerup = new SpeedPowerup();
             var vec = _MapGrid.GetFreePosition(powerup.GetCollisionBoxSize());
             powerup.Position = vec;
+
+            powerup.AddAnimation(PowerUpAnimation.BluePearl, animationBlackBoot.Clone());
+
             _PowerupList.Add(powerup);
         }
 
@@ -394,6 +404,7 @@ namespace ld46
                         {
                             _PowerupList.Remove(powerup);
                             powerup.Consume(_Player);
+                            PlaySoundEffect(_SoundEffects.CollectItem, (float)rnd.NextDouble() * 0.05f + 0.3f, (float)rnd.NextDouble() * 0.2f);
                         }
                     }
 
@@ -477,7 +488,7 @@ namespace ld46
                 _SpriteBatch.DrawString(_Font, "Lava: " + _Player.Water, new Vector2(0, textY), Color.White);
 
                 // Sound-Status
-                _SpriteBatch.Draw(PlaySoundEffects ? _SoundTextures.SoundOn : _SoundTextures.SoundOff, new Vector2(Window.ClientBounds.Width - 64 - 8, 8), Color.White);
+                _SpriteBatch.Draw(PlaySoundEffects ? _IconTextures.SoundOn : _IconTextures.SoundOff, new Vector2(Window.ClientBounds.Width - 64 - 8, 8), Color.White);
             }
             else if (_CurrentGameState == GameState.GameOver)
             {
