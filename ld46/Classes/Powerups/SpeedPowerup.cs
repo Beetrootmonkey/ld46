@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -20,7 +21,7 @@ namespace ld46.Classes
             _Multiplier = multiplier;
         }
 
-        public override void Consume(Player p)
+        public override void Consume(Player p, List<Flower> f)
         {
             Task.Run(() =>
             {

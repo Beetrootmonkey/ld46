@@ -34,8 +34,7 @@ namespace ld46.Classes
             {
                 if (_Health > 0)
                 {
-                    int newValue = value < HEALTH_MAX ? value : HEALTH_MAX;
-                    _Health = newValue;
+                    _Health = MathHelper.Clamp(value, HEALTH_DEAD, HEALTH_MAX);
                 }
             }
         }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
@@ -9,11 +10,11 @@ namespace ld46.Classes
 {
     public enum PowerUpAnimation
     {
-        BluePearl,
         RedHeart,
-        GoldenFruit,
         BrownBoot,
         GoldenBoot,
+        Torch,
+        Bomb,
         Last
     }
 
@@ -29,7 +30,7 @@ namespace ld46.Classes
             TextureSize = PowerupTextureSize;
         }
 
-        public abstract void Consume(Player p);
+        public abstract void Consume(Player p, List<Flower> f);
 
         public override void Draw(SpriteBatch spriteBatch)
         {

@@ -56,7 +56,7 @@ namespace ld46.Classes
             Position = position;
             TextureSize = textureSize;
 #if DEBUG
-            Life = int.MaxValue;
+            Life = 1000;
 #endif
         }
 
