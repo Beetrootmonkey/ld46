@@ -11,6 +11,7 @@ namespace ld46.Classes
     {
         public static Size PowerupTextureSize = new Size(30, 30);
         public sealed override Size TextureSize { get; protected set; }
+        public abstract string PowerupName { get; }
         
         protected APowerupBase()
         {
