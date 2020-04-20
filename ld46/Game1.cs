@@ -479,7 +479,7 @@ namespace ld46
                             _TextList.Add(new FadingText(_Font, powerup.PowerupName, _Player.Position + new Vector2(_Player.TextureSize.Width / 2, _Player.TextureSize.Height / 2 - 5), Color.White));
                             _PowerupList.Remove(powerup);
                             powerup.Consume(_Player);
-                            PlaySoundEffect(_SoundEffects.CollectItem, (float)rnd.NextDouble() * 0.05f + 0.3f, (float)rnd.NextDouble() * 0.2f);
+                            PlaySoundEffect(_SoundEffects.CollectItem, 0.3f);
                         }
                     }
 
@@ -489,6 +489,12 @@ namespace ld46
                     {
                         _Player.Position += offset;
                         isWalking = true;
+                    }
+
+                    //Spawn Powerup
+                    if (rnd.Next(0, 100) < 5)
+                    {
+                        SpawnPowerup();
                     }
 
                     //Aufraumen
