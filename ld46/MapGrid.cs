@@ -20,7 +20,7 @@ namespace ld46
         private readonly int _GridW;
         private readonly int _GridH;
 
-        public (Vector2, bool)[] _GridArr;
+        public (RectangleF, bool)[] _GridArr;
 
         public MapGrid(int mapWidth, int mapHeight)
         {
@@ -34,43 +34,43 @@ namespace ld46
             mapHeight -= _BorderY;
             _GridH = mapHeight / GRIDSIZE;
 
-            _GridArr = new (Vector2, bool)[_GridW * _GridH];
+            _GridArr = new (RectangleF, bool)[_GridW * _GridH];
             for (int w = 0; w < _GridW; w++)
             {
                 for (int h = 0; h < _GridH; h++)
                 {
-                    _GridArr[w*_GridH+h] = (new Vector2(_BorderX + w * GRIDSIZE, _BorderY + h * GRIDSIZE), false);
+                    _GridArr[w*_GridH+h] = (new RectangleF(_BorderX + w * GRIDSIZE, _BorderY + h * GRIDSIZE, GRIDSIZE, GRIDSIZE), false);
                 }
             }
         }
 
         public Vector2 GetFreePosition(Size size)
         {
-            int freeTileCount = _GridArr.Count(v => !v.Item2);
-            if (freeTileCount == 0)
+            var freeTiles = _GridArr.Where(v => !v.Item2 
+                                                && !v.Item1.Intersects(Game1._Player.CollisionBox)
+                                                && !v.Item1.Intersects(Game1._Lake.CollisionBox)).ToList();
+            if (freeTiles.Count == 0)
             {
                 return Vector2.Zero;
             }
 
-            int rdmTileIndex = _Random.Next(0, freeTileCount - 1);
+            int rdmTileIndex = _Random.Next(0, freeTiles.Count - 1);
             int rdmXPos = _Random.Next(0, GRIDSIZE - size.Width - 1);
             int rdmYPos = _Random.Next(0, GRIDSIZE - size.Height - 1);
 
-            int count = 0;
+            var randomTile = freeTiles[rdmTileIndex];
+
             for (int i = 0; i < _GridArr.Length; i++)
             {
-                if (!_GridArr[i].Item2)
+                var t = _GridArr[i];
+                if (t.Item1 == randomTile.Item1)
                 {
-                    if (count == rdmTileIndex)
-                    {
-                        var newPos = _GridArr[i].Item1 + new Vector2(rdmXPos, -rdmYPos);
-
-                        _GridArr[i].Item2 = true;
-                        return newPos;
-                    }
-                    count++;
+                    var newPos = new Vector2(t.Item1.X + rdmXPos, t.Item1.Y - rdmYPos);
+                    _GridArr[i].Item2 = true;
+                    return newPos;
                 }
             }
+
             return Vector2.Zero;
         }
     }

@@ -10,7 +10,7 @@ using Spritesheet;
 
 namespace ld46.Classes
 {
-    abstract class AEntity
+    public abstract class AEntity
     {
         public abstract Size TextureSize { get; protected set; }
         public abstract void Draw(SpriteBatch spriteBatch);

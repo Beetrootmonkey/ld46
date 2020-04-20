@@ -7,7 +7,7 @@ using Spritesheet;
 
 namespace ld46.Classes
 {
-    sealed class Lake : AEntity
+    public sealed class Lake : AEntity
     {
         public override Size TextureSize { get; protected set; }
         

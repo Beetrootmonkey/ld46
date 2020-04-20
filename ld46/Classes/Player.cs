@@ -16,7 +16,7 @@ namespace ld46.Classes
         LookingLeftUp
     }
 
-    sealed class Player : AEntity
+    public sealed class Player : AEntity
     {
         public const int MAX_WATER = 1000;
         public const int MAX_LIVES = 3;

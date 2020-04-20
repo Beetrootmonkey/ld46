@@ -28,6 +28,9 @@ namespace ld46
     public class Game1 : Game
     {
         public static bool DebugMode;
+        public static Player _Player;
+        public static Lake _Lake;
+
         private DateTime _StartTime;
         private TimeSpan _TimeSurvived;
         private KeyboardState _PreviousKeyboardState;
@@ -41,8 +44,7 @@ namespace ld46
 
         private int _ActiveFlowerCount;
         private List<Flower> _FlowerList;
-        private Player _Player;
-        private Lake _Lake;
+        
         private TimeSpan _LastFlowerHealthUpdate;
 
         private Texture2D _TextureBackGround;
@@ -132,19 +134,6 @@ namespace ld46
             // HealthbarColorGradient
             HealthBarColors.Init(Content.Load<Texture2D>("Sprites/health_bar_color_gradient"));
 
-            //Lake
-            Size lakeTextureSize = new Size(174, 106);
-            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/lake_spritesheet")).WithGrid((lakeTextureSize.Width, lakeTextureSize.Height), (0,0), (0,0));
-            _Lake = new Lake(new Vector2(Window.ClientBounds.Width / 2 - lakeTextureSize.Width/2, Window.ClientBounds.Height/2- lakeTextureSize.Height/2), lakeTextureSize);
-            _Lake.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0),(0, 1),(0, 2),(0, 3),(0, 4),(0, 5),(0, 6),(0, 7)));
-
-            //Flower
-            _ActiveFlowerCount = 2;
-            _FlowerList = new List<Flower>();
-            LoadFlower(10, Flower.HEALTH_DEAD);
-            LoadFlower(_ActiveFlowerCount);
-
-
             //Player
             Size playerTextureSize = new Size(40, 56);
             sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/player_spritesheet")).WithGrid((playerTextureSize.Width, playerTextureSize.Height), (0,0), (0,0));
@@ -156,6 +145,18 @@ namespace ld46
             _Player.AddAnimation(PlayerAnimation.LookingRightDown, sheet.CreateAnimation(animFront));
             _Player.AddAnimation(PlayerAnimation.LookingDownLeft, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation(animFront));
             _Player.AddAnimation(PlayerAnimation.LookingLeftUp, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation(animBack));
+
+            //Lake
+            Size lakeTextureSize = new Size(174, 106);
+            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/lake_spritesheet")).WithGrid((lakeTextureSize.Width, lakeTextureSize.Height), (0,0), (0,0));
+            _Lake = new Lake(new Vector2(Window.ClientBounds.Width / 2 - lakeTextureSize.Width/2, Window.ClientBounds.Height/2- lakeTextureSize.Height/2), lakeTextureSize);
+            _Lake.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0),(0, 1),(0, 2),(0, 3),(0, 4),(0, 5),(0, 6),(0, 7)));
+
+            //Flower
+            _ActiveFlowerCount = 2;
+            _FlowerList = new List<Flower>();
+            LoadFlower(10, Flower.HEALTH_DEAD);
+            LoadFlower(_ActiveFlowerCount);
 
             _TextureBackGround = Content.Load<Texture2D>("Sprites/background");
 
@@ -395,7 +396,7 @@ namespace ld46
             {
                 if (_Player.WalkSoundCounter == 0)
                 {
-                    PlaySoundEffect(_SoundEffects.PlayerWalk, (float)rnd.NextDouble() * 0.05f + 0.3f, (float)rnd.NextDouble() * 0.2f);
+                    PlaySoundEffect(_SoundEffects.PlayerWalk, (float)rnd.NextDouble() * 0.05f + 0.1f, (float)rnd.NextDouble() * 0.2f);
                 }
 
                 _Player.WalkSoundCounter++;
@@ -426,7 +427,7 @@ namespace ld46
                 {
                     foreach (var v in _MapGrid._GridArr)
                     {
-                        _SpriteBatch.DrawRectangle(v.Item1, new Size2(MapGrid.GRIDSIZE, MapGrid.GRIDSIZE), Color.Aqua);
+                        _SpriteBatch.DrawRectangle(v.Item1, Color.Aqua);
                     }
                 }
 
