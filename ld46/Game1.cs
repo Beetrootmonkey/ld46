@@ -59,13 +59,18 @@ namespace ld46
         private Texture2D _TextureBackGround;
         Random rnd = new Random();
 
-        (SoundEffect FlowerGrow, SoundEffect PlayerWalk, SoundEffect GatherWater, SoundEffect CollectItem) _SoundEffects;
+        private (SoundEffect FlowerGrow, SoundEffect PlayerWalk, SoundEffect GatherWater, SoundEffect CollectItem) _SoundEffects;
         public static bool PlaySoundEffects = true;
         (Texture2D SoundOn, Texture2D SoundOff) _IconTextures;
         private MapGrid _MapGrid;
 
-        private ParticleEffect _particleEffect;
-        private Texture2D _particleTexture;
+        private (Texture2D Ember, Texture2D Smoke) _ParticleTextures;
+        private List<CustomParticleEffect> _ParticleEffects;
+
+        private void RegisterParticleEffect(ParticleEffect particleEffect, float maxAge = -1)
+        {
+            _ParticleEffects.Add(new CustomParticleEffect(particleEffect, maxAge));
+        }
 
         public Game1()
         {
@@ -115,49 +120,6 @@ namespace ld46
         {
         }
 
-        private void ParticleInit(TextureRegion2D textureRegion)
-        {
-            _particleEffect = new ParticleEffect(autoTrigger: false)
-            {
-                Position = new Vector2(400, 240),
-                Emitters = new List<ParticleEmitter>
-                {
-                    new ParticleEmitter(textureRegion, 500, TimeSpan.FromSeconds(2.5),
-                        Profile.Ring(20f, Profile.CircleRadiation.None))
-                    {
-                        Parameters = new ParticleReleaseParameters
-                        {
-                            Speed = new Range<float>(0f, 50f),
-                            Quantity = 3,
-                            Rotation = new Range<float>(-1f, 1f),
-                            Scale = new Range<float>(3.0f, 4.0f)
-                        },
-                        Modifiers =
-                        {
-                            new AgeModifier
-                            {
-                                Interpolators =
-                                {
-                                    new ColorInterpolator
-                                    {
-                                        StartValue = new HslColor(31.8f, 0.847f, 0.5f),
-                                        EndValue = new HslColor(31.8f, 0f, 0f)
-                                    },
-                                    new OpacityInterpolator
-                                    {
-                                        StartValue = 1,
-                                        EndValue = 0
-                                    }
-                                }
-                            },
-                            new RotationModifier {RotationRate = -2.1f},
-                            new LinearGravityModifier {Direction = -Vector2.UnitY, Strength = 60f}
-                        }
-                    }
-                }
-            };
-        }
-
         /// <summary>
         /// LoadContent will be called once per game and is the place to load
         /// all of your content.
@@ -167,10 +129,13 @@ namespace ld46
             _StartTime = DateTime.Now;
 
             // Partikeltextur laden (hier: Partikeltextur generieren)
-            _particleTexture = new Texture2D(GraphicsDevice, 1, 1);
-            _particleTexture.SetData(new[] { Color.White });
-            ParticleInit(new TextureRegion2D(_particleTexture));
+            _ParticleTextures = (
+                new Texture2D(GraphicsDevice, 1, 1),
+                Content.Load<Texture2D>("Sprites/smoke"));
+            _ParticleTextures.Ember.SetData(new[] { Color.White });
 
+            // Partikeleffektliste
+            _ParticleEffects = new List<CustomParticleEffect>();
 
             // Sounds laden
             _SoundEffects = (
@@ -213,6 +178,8 @@ namespace ld46
             sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/lake_spritesheet")).WithGrid((lakeTextureSize.Width, lakeTextureSize.Height), (0,0), (0,0));
             _Lake = new Lake(new Vector2(Window.ClientBounds.Width / 2 - lakeTextureSize.Width/2, Window.ClientBounds.Height/2- lakeTextureSize.Height/2), lakeTextureSize);
             _Lake.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0),(0, 1),(0, 2),(0, 3),(0, 4),(0, 5),(0, 6),(0, 7)));
+
+            RegisterParticleEffect(CustomParticleEffect.CreateEmberParticleEffect(_ParticleTextures.Ember, _Lake.Position + new Vector2(lakeTextureSize.Width / 2, lakeTextureSize.Height / 2), _Lake.GetCollisionBoxSize()), 240);
 
             //Flower
             _ActiveFlowerCount = 2;
@@ -346,11 +313,12 @@ namespace ld46
                     if (updateFlowerHealth)
                     {
                         _TextList.Add(new FadingText(_Font, "-4", flower.Position + new Vector2(flower.TextureSize.Width / 2, flower.TextureSize.Height / 2 - 5), Color.White));
-                        flower.Health -= 4;
+                        flower.Health -= 25;
 
                         if (flower.Health <= 0)
                         {
                             _Player.Life--;
+                            RegisterParticleEffect(CustomParticleEffect.CreateSmokeParticleEffect(_ParticleTextures.Smoke, flower.Position + new Vector2(Flower.FlowerTextureSize.Width / 2, Flower.FlowerTextureSize.Height / 2), flower.GetCollisionBoxSize()), 30);
                         }
                     }
                 }
@@ -376,8 +344,40 @@ namespace ld46
                     SpawnRandomPowerup();
                 }
 
-                //var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-                //_particleEffect.Update(deltaTime);
+                // Partikeleffekte updaten
+                var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+                List<CustomParticleEffect> markedForRemoval = new List<CustomParticleEffect>();
+
+                foreach (var entry in _ParticleEffects)
+                {
+                    entry.ParticleEffect.Update(deltaTime);
+                    if (entry.TimeLeft > 0)
+                    {
+                        entry.TimeLeft--;
+                    }
+                    if (entry.TimeLeft == 0)
+                    {
+                        // Zum Löschen markieren
+                        foreach (var emitter in entry.ParticleEffect.Emitters)
+                        {
+                            emitter.Parameters.Quantity = 0;
+                        }
+                    }
+
+                    foreach (var emitter in entry.ParticleEffect.Emitters)
+                    {
+                        if (emitter.Parameters.Quantity == 0 && emitter.ActiveParticles == 0)
+                        {
+                            markedForRemoval.Add(entry);
+                            break;
+                        }
+                    }
+                }
+
+                foreach (var entry in markedForRemoval)
+                {
+                    _ParticleEffects.Remove(entry);
+                }
 
                 _PreviousKeyboardState = Keyboard.GetState();
                 base.Update(gameTime);
@@ -458,6 +458,7 @@ namespace ld46
                                 if (heal > 0)
                                 {
                                     PlaySoundEffect(_SoundEffects.FlowerGrow, 0.5f, -0.2f);
+                                    RegisterParticleEffect(CustomParticleEffect.CreateEmberParticleEffect(_ParticleTextures.Ember, flower.Position + new Vector2(Flower.FlowerTextureSize.Width / 2, Flower.FlowerTextureSize.Height / 2), flower.GetCollisionBoxSize()), 30);
                                 }
                             }
 
@@ -558,7 +559,10 @@ namespace ld46
                 var drawList = new List<AEntity>();
                 drawList.AddRange(_FlowerList);
                 drawList.Add(_Player);
-                drawList.Add(_Powerup);
+                if (_Powerup != null)
+                {
+                    drawList.Add(_Powerup);
+                }
 
                 foreach (var i in drawList.OrderBy(v => v.Position.Y))
                 {
@@ -570,7 +574,10 @@ namespace ld46
                     fadingText.Draw(_SpriteBatch);
                 }
 
-                _SpriteBatch.Draw(_particleEffect);
+                foreach (var entry in _ParticleEffects)
+                {
+                    _SpriteBatch.Draw(entry.ParticleEffect);
+                }
 
 
                 float textY = 0;

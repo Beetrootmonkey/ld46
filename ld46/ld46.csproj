@@ -44,8 +44,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Classes\AEntity.cs" />
+    <Compile Include="Classes\CustomParticleEffect.cs" />
     <Compile Include="Classes\FadingText.cs" />
     <Compile Include="Classes\HealthBarColors.cs" />
+    <Compile Include="Classes\ParticleProperBoxFill.cs" />
     <Compile Include="Classes\Powerups\BombPowerup.cs" />
     <Compile Include="Classes\Powerups\TorchPowerup.cs" />
     <Compile Include="Classes\Powerups\HeartPowerup.cs" />
