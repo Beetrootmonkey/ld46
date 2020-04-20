@@ -44,6 +44,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Classes\AEntity.cs" />
+    <Compile Include="Classes\FadingText.cs" />
     <Compile Include="Classes\HealthBarColors.cs" />
     <Compile Include="Classes\Powerups\SpeedPowerup.cs" />
     <Compile Include="Classes\Powerups\APowerupBase.cs" />

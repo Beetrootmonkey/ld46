@@ -11,6 +11,8 @@ namespace ld46.Classes
 {
     class SpeedPowerup : APowerupBase
     {
+        public override string PowerupName => "SPEED UP";
+
         public override void Consume(Player p)
         {
             Task.Run(() =>

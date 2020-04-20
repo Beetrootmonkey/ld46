@@ -70,8 +70,8 @@ namespace ld46.Classes
 
         private void DrawHealthbar(SpriteBatch spriteBatch)
         {
-            var healthbarVector = Position + new Vector2(0, -20);
-            var healthbarBgRect = new Rectangle((int)healthbarVector.X, (int)healthbarVector.Y, TextureSize.Width, 15);
+            var healthbarVector = Position + new Vector2(0, TextureSize.Height);
+            var healthbarBgRect = new Rectangle((int)healthbarVector.X, (int)healthbarVector.Y, TextureSize.Width, 8);
                 
             var w = TextureSize.Width * _Health / 100;
             var healthbarRect = new RectangleF(healthbarBgRect.X, healthbarBgRect.Y, w, healthbarBgRect.Height);

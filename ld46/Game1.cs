@@ -45,6 +45,7 @@ namespace ld46
         private int _ActiveFlowerCount;
         private List<Flower> _FlowerList;
         private List<APowerupBase> _PowerupList;
+        private List<FadingText> _TextList;
         
         private TimeSpan _LastFlowerHealthUpdate;
 
@@ -163,6 +164,9 @@ namespace ld46
             _PowerupList = new List<APowerupBase>();
             SpawnPowerup();
 
+            //FadingText
+            _TextList = new List<FadingText>();
+
             _TextureBackGround = Content.Load<Texture2D>("Sprites/background");
 
             _CurrentGameState = GameState.Running;
@@ -273,6 +277,7 @@ namespace ld46
                     flower.Update(gameTime);
                     if (updateFlowerHealth)
                     {
+                        _TextList.Add(new FadingText(_Font, "-4", flower.Position + new Vector2(flower.TextureSize.Width / 2, flower.TextureSize.Height / 2 - 5), Color.White));
                         flower.Health -= 4;
 
                         if (flower.Health <= 0)
@@ -366,7 +371,9 @@ namespace ld46
                                 int healthLost = Flower.HEALTH_MAX - flower.Health;
 
                                 int heal = Math.Min(_Player.Water, healthLost);
+                                _TextList.Add(new FadingText(_Font, "+" + heal, flower.Position + new Vector2(flower.TextureSize.Width / 2, flower.TextureSize.Height / 2 - 5), Color.White));
                                 flower.Health += heal;
+                                _TextList.Add(new FadingText(_Font, "-" + heal, _Player.Position + new Vector2(_Player.TextureSize.Width / 2, _Player.TextureSize.Height / 2 - 5), Color.White));
                                 _Player.Water -= heal;
 
                                 if (heal > 0)
@@ -390,6 +397,8 @@ namespace ld46
                     {
                         if (_Player.Water != Player.MAX_WATER)
                         {
+                            int missing = Player.MAX_WATER - _Player.Water;
+                            _TextList.Add(new FadingText(_Font, "+" + missing, _Player.Position + new Vector2(_Player.TextureSize.Width / 2, _Player.TextureSize.Height / 2 - 5), Color.White));
                             _Player.Water = Player.MAX_WATER;
                             PlaySoundEffect(_SoundEffects.GatherWater, 0.3f);
                         }
@@ -402,12 +411,12 @@ namespace ld46
                         var powerup = _PowerupList[j];
                         if (newCollissionBox.Intersects(powerup.CollisionBox))
                         {
+                            _TextList.Add(new FadingText(_Font, powerup.PowerupName, _Player.Position + new Vector2(_Player.TextureSize.Width / 2, _Player.TextureSize.Height / 2 - 5), Color.White));
                             _PowerupList.Remove(powerup);
                             powerup.Consume(_Player);
                             PlaySoundEffect(_SoundEffects.CollectItem, (float)rnd.NextDouble() * 0.05f + 0.3f, (float)rnd.NextDouble() * 0.2f);
                         }
                     }
-
 
                     //Kollision Kanten
                     if (newPlayerPos.X >= 0 && newPlayerPos.Y >= 0
@@ -415,6 +424,15 @@ namespace ld46
                     {
                         _Player.Position += offset;
                         isWalking = true;
+                    }
+
+                    //Aufraumen
+                    for (var i2 = 0; i2 < _TextList.Count; i2++)
+                    {
+                        if (_TextList[i2].CanDelete)
+                        {
+                            _TextList.RemoveAt(i2);
+                        }
                     }
                 }
             }
@@ -450,13 +468,13 @@ namespace ld46
                 _SpriteBatch.Draw(_TextureBackGround, Vector2.Zero, Color.White);
                 _Lake.Draw(_SpriteBatch);
 
-                if (DebugMode)
-                {
-                    foreach (var v in _MapGrid._GridArr)
-                    {
-                        _SpriteBatch.DrawRectangle(v.Item1, Color.Aqua);
-                    }
-                }
+                //if (DebugMode)
+                //{
+                //    foreach (var v in _MapGrid._GridArr)
+                //    {
+                //        _SpriteBatch.DrawRectangle(v.Item1, Color.Aqua);
+                //    }
+                //}
 
                 var drawList = new List<AEntity>();
                 drawList.AddRange(_FlowerList);
@@ -467,6 +485,12 @@ namespace ld46
                 {
                     i.Draw(_SpriteBatch);
                 }
+
+                foreach (var fadingText in _TextList)
+                {
+                    fadingText.Draw(_SpriteBatch);
+                }
+
 
                 float textY = 0;
                 Vector2 textVec;
