@@ -15,8 +15,8 @@ namespace ld46.Classes
         public abstract Size TextureSize { get; protected set; }
         public abstract void Draw(SpriteBatch spriteBatch);
 
-        public Vector2 _Position { get; set; }
-        public Rectangle CollisionBox => CalcCollissionBox(_Position);
+        public Vector2 Position { get; set; }
+        public Rectangle CollisionBox => CalcCollissionBoxRect(Position);
 
         public int CurrentAnimationIndex { get; set; }
         public Dictionary<int, Animation> AnimationDictionary { get; }
@@ -27,9 +27,15 @@ namespace ld46.Classes
             AnimationDictionary = new Dictionary<int, Animation>();
         }
 
-        public virtual Rectangle CalcCollissionBox(Vector2 v)
+        public virtual Size GetCollisionBoxSize()
         {
-            return new Rectangle((int) (v.X), (int) (v.Y), TextureSize.Width, TextureSize.Height);
+            return new Size(TextureSize.Width, TextureSize.Height);
+        }
+
+        public virtual Rectangle CalcCollissionBoxRect(Vector2 v)
+        {
+            var colSize = GetCollisionBoxSize();
+            return new Rectangle((int) (v.X), (int) (v.Y), colSize.Width, colSize.Height);
         }
 
         public void Update(GameTime gt)

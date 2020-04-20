@@ -13,7 +13,7 @@ namespace ld46.Classes
         
         public Lake(Vector2 position, Size textureSize)
         {
-            _Position = position;
+            Position = position;
             TextureSize = textureSize;
         }
 
@@ -24,7 +24,7 @@ namespace ld46.Classes
             {
                 CurrentAnimation.Start(Repeat.Mode.Loop);
             }
-            spriteBatch.Draw(CurrentAnimation, _Position);
+            spriteBatch.Draw(CurrentAnimation, Position);
 
             if (Game1.DebugMode)
             {

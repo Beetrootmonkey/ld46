@@ -39,7 +39,8 @@ namespace ld46
 
         private SpriteFont _Font;
 
-        List<Flower> _FlowerList;
+        private int _ActiveFlowerCount;
+        private List<Flower> _FlowerList;
         private Player _Player;
         private Lake _Lake;
         private TimeSpan _LastFlowerHealthUpdate;
@@ -50,12 +51,15 @@ namespace ld46
         (SoundEffect FlowerGrow, SoundEffect PlayerWalk, SoundEffect GatherWater) _SoundEffects;
         public static bool PlaySoundEffects = true;
         (Texture2D SoundOn, Texture2D SoundOff) _SoundTextures;
+        private Texture2D textureBackGround;
+        private MapGrid _MapGrid;
 
         public Game1()
         {
 #if DEBUG
             DebugMode = true;
 #endif
+
             _Graphics = new GraphicsDeviceManager(this)
             {
                 PreferredBackBufferWidth = 1216,
@@ -78,6 +82,7 @@ namespace ld46
             // TODO: Add your initialization logic here
             IsMouseVisible = true;
             _PreviousKeyboardState = Keyboard.GetState();
+
             base.Initialize();
         }
 
@@ -104,7 +109,6 @@ namespace ld46
         protected override void LoadContent()
         {
             _StartTime = DateTime.Now;
-
             // Sounds laden
             _SoundEffects = (
                 Content.Load<SoundEffect>("Sounds/Grow"),
@@ -115,6 +119,8 @@ namespace ld46
             _SoundTextures = (
                 Content.Load<Texture2D>("Sprites/icon_sound_on"),
                 Content.Load<Texture2D>("Sprites/icon_sound_off"));
+
+            _MapGrid = new MapGrid(Window.ClientBounds.Width, Window.ClientBounds.Height);
 
             // Create a new SpriteBatch, which can be used to draw textures.
             _SpriteBatch = new SpriteBatch(GraphicsDevice);
@@ -128,18 +134,20 @@ namespace ld46
 
             //Lake
             Size lakeTextureSize = new Size(174, 106);
-            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/lake_spritesheet")).WithGrid((lakeTextureSize.Width, lakeTextureSize.Height), (0, 0), (0, 0));
-            _Lake = new Lake(new Vector2(Window.ClientBounds.Width / 2 - lakeTextureSize.Width / 2, Window.ClientBounds.Height / 2 - lakeTextureSize.Height / 2), lakeTextureSize);
-            _Lake.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7)));
+            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/lake_spritesheet")).WithGrid((lakeTextureSize.Width, lakeTextureSize.Height), (0,0), (0,0));
+            _Lake = new Lake(new Vector2(Window.ClientBounds.Width / 2 - lakeTextureSize.Width/2, Window.ClientBounds.Height/2- lakeTextureSize.Height/2), lakeTextureSize);
+            _Lake.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0),(0, 1),(0, 2),(0, 3),(0, 4),(0, 5),(0, 6),(0, 7)));
 
             //Flower
+            _ActiveFlowerCount = 2;
             _FlowerList = new List<Flower>();
-            LoadFlower(1);
+            LoadFlower(10, Flower.HEALTH_DEAD);
+            LoadFlower(_ActiveFlowerCount);
 
 
             //Player
             Size playerTextureSize = new Size(40, 56);
-            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/player_spritesheet")).WithGrid((playerTextureSize.Width, playerTextureSize.Height), (0, 0), (0, 0));
+            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/player_spritesheet")).WithGrid((playerTextureSize.Width, playerTextureSize.Height), (0,0), (0,0));
             _Player = new Player(new Vector2(100, 100), playerTextureSize);
             _Player.AddAnimation(PlayerAnimation.Idle, sheet.CreateAnimation((0, 0)));
             (int x, int y)[] animFront = { (0, 0), (1, 0), (0, 0), (2, 0) };
@@ -154,23 +162,25 @@ namespace ld46
             _CurrentGameState = GameState.Running;
         }
 
-        private void LoadFlower(int count)
+        private void LoadFlower(int count, int health = Flower.HEALTH_MAX)
         {
-            Size flowerTextureSize = new Size(54, 58);
-            Spritesheet.Spritesheet sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/skull_spritesheet")).WithGrid((flowerTextureSize.Width, flowerTextureSize.Height), (0, 0), (0, 0));
+            Spritesheet.Spritesheet sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/skull_spritesheet")).WithGrid((Flower.FlowerTextureSize.Width, Flower.FlowerTextureSize.Height), (0,0), (0,0));
             var animationAlive = sheet.CreateAnimation((0, 0), (1, 0), (2, 0), (3, 0));
             var animationSick = sheet.CreateAnimation((0, 1), (1, 1), (2, 1), (3, 1));
             var animationDead = sheet.CreateAnimation((0, 2));
 
+            Random rnd = new Random();
             for (int i = 0; i < count; i++)
             {
-                Flower flower;
-                do
-                {
-                    int x = rnd.Next(10, Window.ClientBounds.Width - 20);
-                    int y = rnd.Next(10, Window.ClientBounds.Height - 20);
-                    flower = new Flower(new Vector2(x, y), flowerTextureSize);
-                } while (flower.CollisionBox.Intersects(_Lake.CollisionBox));
+                var flower = new Flower(health);
+                var vec = _MapGrid.GetFreePosition(flower.GetCollisionBoxSize());
+                flower.Position = vec;
+                //do
+                //{
+                //    int w = rnd.Next(10, Window.ClientBounds.Width);
+                //    int h = rnd.Next(10, Window.ClientBounds.Height);
+                //    flower = new Flower(new Vector2(w, h), flowerTextureSize);
+                //} while (flower.CollisionBox.Intersects(_Lake.CollisionBox));
 
                 flower.AddAnimation(FlowerAnimation.Alive, animationAlive.Clone());
                 flower.AddAnimation(FlowerAnimation.Sick, animationSick.Clone());
@@ -200,7 +210,6 @@ namespace ld46
             {
                 Exit();
             }
-
 
             if (Keyboard.GetState().IsKeyDown(Keys.R) && !_PreviousKeyboardState.IsKeyDown(Keys.R))
             {
@@ -263,9 +272,11 @@ namespace ld46
                     _CurrentGameState = GameState.GameOver;
                 }
 
-                if ((DateTime.Now - _StartTime).TotalSeconds / 30 + 1 > _FlowerList.Count)
+                if ((DateTime.Now - _StartTime).TotalSeconds / 20 + 1> _ActiveFlowerCount)
                 {
+                    _ActiveFlowerCount++;
                     LoadFlower(1);
+                    LoadFlower(1, Flower.HEALTH_DEAD);
                 }
 
                 _PreviousKeyboardState = Keyboard.GetState();
@@ -318,13 +329,13 @@ namespace ld46
 
                 foreach (var offset in new Vector2[] { offsetX, offsetY })
                 {
-                    var newPlayerPos = _Player._Position + offset;
-                    if (newPlayerPos == _Player._Position)
+                    var newPlayerPos = _Player.Position + offset;
+                    if (newPlayerPos == _Player.Position)
                     {
                         continue;
                     }
 
-                    var newCollissionBox = _Player.CalcCollissionBox(newPlayerPos);
+                    var newCollissionBox = _Player.CalcCollissionBoxRect(newPlayerPos);
                     bool collisionWithFlower = false;
 
                     //Kollision Blumen
@@ -374,7 +385,7 @@ namespace ld46
                     if (newPlayerPos.X >= 0 && newPlayerPos.Y >= 0
                     && newCollissionBox.Right <= Window.ClientBounds.Width && newCollissionBox.Bottom <= Window.ClientBounds.Height)
                     {
-                        _Player._Position += offset;
+                        _Player.Position += offset;
                         isWalking = true;
                     }
                 }
@@ -403,7 +414,7 @@ namespace ld46
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(new Color(105, 40, 13));
+            GraphicsDevice.Clear(new Color(105,40,13));
             _SpriteBatch.Begin();
 
             if (_CurrentGameState == GameState.Running)
@@ -411,10 +422,18 @@ namespace ld46
                 _SpriteBatch.Draw(_TextureBackGround, Vector2.Zero, Color.White);
                 _Lake.Draw(_SpriteBatch);
 
+                if (DebugMode)
+                {
+                    foreach (var v in _MapGrid._GridArr)
+                    {
+                        _SpriteBatch.DrawRectangle(v.Item1, new Size2(MapGrid.GRIDSIZE, MapGrid.GRIDSIZE), Color.Aqua);
+                    }
+                }
+
                 var drawList = new List<AEntity>(_FlowerList)
                 {
                     _Player
-                }.OrderBy(v => v._Position.Y);
+                }.OrderBy(v => v.Position.Y);
 
                 foreach (var i in drawList)
                 {
@@ -447,7 +466,7 @@ namespace ld46
             {
                 string text = "GAME OVER";
                 var textSize = _Font.MeasureString(text);
-                var textVec = new Vector2(Window.ClientBounds.Width / 2 - textSize.X / 2, Window.ClientBounds.Height / 2 - textSize.Y / 2);
+                var textVec = new Vector2(Window.ClientBounds.Width / 2 - textSize.X / 2, Window.ClientBounds.Height / 2 - textSize.Y /2);
                 _SpriteBatch.DrawString(_Font, text, textVec, Color.White);
 
                 text = "Awesome :) You survived " + _TimeSurvived.ToString(@"hh\:mm\:ss") + "!";

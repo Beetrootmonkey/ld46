@@ -18,10 +18,12 @@ namespace ld46.Classes
 
     sealed class Flower : AEntity
     {
+        public static Size FlowerTextureSize = new Size(54, 58);
+
         public const int HEALTH_MAX = 100;
-        private const int HEALTH_NORMAL = 80;
-        private const int HEALTH_CRITICAL = 25;
-        private const int HEALTH_DEAD = 0;
+        public const int HEALTH_NORMAL = 80;
+        public const int HEALTH_CRITICAL = 25;
+        public const int HEALTH_DEAD = 0;
 
         public override Size TextureSize { get; protected set; }
 
@@ -38,11 +40,11 @@ namespace ld46.Classes
             }
         }
 
-        public Flower(Vector2 position, Size textureSize)
+        public Flower(int health = HEALTH_MAX)
         {
-            _Health = HEALTH_MAX;
-            _Position = position;
-            TextureSize = textureSize;
+            _Health = health;
+            Position = new Vector2(-1000, -1000);
+            TextureSize = FlowerTextureSize;
         }
 
         public override void Draw(SpriteBatch spriteBatch)
@@ -53,7 +55,7 @@ namespace ld46.Classes
             }
             
             DrawFlower(spriteBatch);
-            spriteBatch.Draw(CurrentAnimation, _Position);
+            spriteBatch.Draw(CurrentAnimation, Position);
             if (Game1.DebugMode)
             {
                 spriteBatch.DrawRectangle(CollisionBox, Color.Green);
@@ -68,7 +70,7 @@ namespace ld46.Classes
 
         private void DrawHealthbar(SpriteBatch spriteBatch)
         {
-            var healthbarVector = _Position + new Vector2(0, -20);
+            var healthbarVector = Position + new Vector2(0, -20);
             var healthbarBgRect = new Rectangle((int)healthbarVector.X, (int)healthbarVector.Y, TextureSize.Width, 15);
                 
             var w = TextureSize.Width * _Health / 100;
@@ -131,12 +133,17 @@ namespace ld46.Classes
             CurrentAnimation.Start(Repeat.Mode.Loop);
         }
 
-        public override Rectangle CalcCollissionBox(Vector2 v)
+        public override Size GetCollisionBoxSize()
         {
-            int h = TextureSize.Height / 2;
-            float y = v.Y + h;
+            return new Size(TextureSize.Width, TextureSize.Height / 2);
+        }
 
-            return new Rectangle((int) (v.X), (int) (y), TextureSize.Width, h);
+        public override Rectangle CalcCollissionBoxRect(Vector2 v)
+        {
+            var colSize = GetCollisionBoxSize();
+            float y = v.Y + colSize.Height;
+
+            return new Rectangle((int) (v.X), (int) (y), colSize.Width, colSize.Height);
         }
     }
 }
