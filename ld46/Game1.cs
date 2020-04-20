@@ -117,7 +117,7 @@ namespace ld46
                 Content.Load<SoundEffect>("Sounds/Fire"),
                 Content.Load<SoundEffect>("Sounds/Walk_fast"),
                 Content.Load<SoundEffect>("Sounds/Fill"),
-                Content.Load<SoundEffect>("Sounds/Powerup"));
+                Content.Load<SoundEffect>("Sounds/Coin"));
 
             // Texturen für Icons laden
             _IconTextures = (
