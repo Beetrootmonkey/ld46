@@ -51,8 +51,11 @@ namespace ld46.Classes
 
         public Player(Vector2 position, Size textureSize)
         {
-            _Position = position;
+            Position = position;
             TextureSize = textureSize;
+#if DEBUG
+            Life = int.MaxValue;
+#endif
         }
 
         public void AddAnimation(PlayerAnimation f, Animation a)
@@ -67,7 +70,7 @@ namespace ld46.Classes
                 CurrentAnimation.Start(Repeat.Mode.Loop);
             }
 
-            spriteBatch.Draw(CurrentAnimation, _Position);
+            spriteBatch.Draw(CurrentAnimation, Position);
 
             if (Game1.DebugMode)
             {
@@ -118,7 +121,7 @@ namespace ld46.Classes
             CurrentAnimation.Start(Repeat.Mode.Loop);
         }
 
-        public override Rectangle CalcCollissionBox(Vector2 v)
+        public override Rectangle CalcCollissionBoxRect(Vector2 v)
         {
             int h = TextureSize.Height / 2;
             float y = v.Y + h;

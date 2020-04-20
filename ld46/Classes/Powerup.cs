@@ -13,7 +13,7 @@ namespace ld46.Classes
         
         public Powerup(Vector2 position, Size textureSize)
         {
-            _Position = position;
+            Position = position;
             TextureSize = new Size(30,30);
         }
 
@@ -24,7 +24,7 @@ namespace ld46.Classes
             {
                 CurrentAnimation.Start(Repeat.Mode.Loop);
             }
-            spriteBatch.FillRectangle(_Position, new Size2(5,5), Color.Blue);
+            spriteBatch.FillRectangle(Position, new Size2(5,5), Color.Blue);
 
             if (Game1.DebugMode)
             {

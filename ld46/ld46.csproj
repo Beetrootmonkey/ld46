@@ -51,7 +51,7 @@
     <Compile Include="Classes\Flower.cs" />
     <Compile Include="ExtentionMethodes.cs" />
     <Compile Include="Game1.cs" />
-    <Compile Include="GameMap.cs" />
+    <Compile Include="MapGrid.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
