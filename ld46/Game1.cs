@@ -217,6 +217,11 @@ namespace ld46
                 LoadContent();
             }
 
+            if (Keyboard.GetState().IsKeyDown(Keys.M) && !_PreviousKeyboardState.IsKeyDown(Keys.M))
+            {
+                PlaySoundEffects = !PlaySoundEffects;
+            }
+
 #if DEBUG
             if (Keyboard.GetState().IsKeyDown(Keys.LeftControl) && Keyboard.GetState().IsKeyDown(Keys.D)
                                                                 && !_PreviousKeyboardState.IsKeyDown(Keys.D))
@@ -229,13 +234,7 @@ namespace ld46
                 LoadFlower(1);
             }
 #endif
-            if (Keyboard.GetState().IsKeyDown(Keys.LeftControl) && Keyboard.GetState().IsKeyDown(Keys.S)
-                                                                && !_PreviousKeyboardState.IsKeyDown(Keys.S))
-            {
-                PlaySoundEffects = !PlaySoundEffects;
-            }
-
-
+            
             if (_CurrentGameState == GameState.Running)
             {
                 //Player
