@@ -416,25 +416,25 @@ namespace ld46
                 var kbState = Keyboard.GetState();
                 bool idle = true;
 
-                if (kbState.IsKeyDown(Keys.Up))
+                if (kbState.IsKeyDown(Keys.Up) || kbState.IsKeyDown(Keys.W))
                 {
                     _Player.VDirection = true;
                     offsetY += new Vector2(0, -1);
                     idle = false;
                 }
-                if (kbState.IsKeyDown(Keys.Left))
+                if (kbState.IsKeyDown(Keys.Left) || kbState.IsKeyDown(Keys.A))
                 {
                     _Player.HDirection = false;
                     offsetX += new Vector2(-1, 0);
                     idle = false;
                 }
-                if (kbState.IsKeyDown(Keys.Down))
+                if (kbState.IsKeyDown(Keys.Down) || kbState.IsKeyDown(Keys.S))
                 {
                     _Player.VDirection = false;
                     offsetY += new Vector2(0, 1);
                     idle = false;
                 }
-                if (kbState.IsKeyDown(Keys.Right))
+                if (kbState.IsKeyDown(Keys.Right) || kbState.IsKeyDown(Keys.D))
                 {
                     _Player.HDirection = true;
                     offsetX += new Vector2(1, 0);
