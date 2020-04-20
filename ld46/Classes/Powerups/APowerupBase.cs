@@ -13,7 +13,8 @@ namespace ld46.Classes
         RedHeart,
         GoldenFruit,
         BrownBoot,
-        BlackBoot
+        GoldenBoot,
+        Last
     }
 
     abstract class APowerupBase : AEntity
@@ -32,7 +33,7 @@ namespace ld46.Classes
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            CurrentAnimationIndex = 0;
+            //CurrentAnimationIndex = 0;
             if (!CurrentAnimation.IsStarted)
             {
                 CurrentAnimation.Start(Repeat.Mode.Loop);

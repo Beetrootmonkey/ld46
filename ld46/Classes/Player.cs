@@ -20,15 +20,15 @@ namespace ld46.Classes
     {
         public const int MAX_WATER = 1000;
         public const int MAX_LIVES = 3;
-        public const int DEFAULT_SPEED = 3;
+        public const double DEFAULT_SPEED = 3;
 
         public override Size TextureSize { get; protected set; }
 
         public int Water { get; set; } = MAX_WATER;
         public int Life { get; set; } = MAX_LIVES;
-        public int Speed { get; set; } = DEFAULT_SPEED;
+        public double Speed { get; set; } = DEFAULT_SPEED;
 
-        public int WalkSoundCounter { get; set; }
+        public double WalkSoundCounter { get; set; }
 
         private bool _CurrentHDirection;
         public bool HDirection

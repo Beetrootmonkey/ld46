@@ -44,10 +44,11 @@ namespace ld46
 
         private int _ActiveFlowerCount;
         private List<Flower> _FlowerList;
-        private List<APowerupBase> _PowerupList;
+        private APowerupBase _Powerup;
         private List<FadingText> _TextList;
         
         private TimeSpan _LastFlowerHealthUpdate;
+        private DateTime _NextPowerupSpawn;
 
         private Texture2D _TextureBackGround;
         Random rnd = new Random();
@@ -160,10 +161,6 @@ namespace ld46
             SpawnFlower(10, Flower.HEALTH_DEAD);
             SpawnFlower(_ActiveFlowerCount);
 
-            //Powerup
-            _PowerupList = new List<APowerupBase>();
-            SpawnPowerup();
-
             //FadingText
             _TextList = new List<FadingText>();
 
@@ -172,22 +169,34 @@ namespace ld46
             _CurrentGameState = GameState.Running;
         }
 
-        private void SpawnPowerup()
+        private void SpawnRandomPowerup()
         {
             Spritesheet.Spritesheet sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/items_spritesheet")).WithGrid((Flower.FlowerTextureSize.Width, Flower.FlowerTextureSize.Height), (0, 0), (0, 0));
             var animationBrownBoot = sheet.CreateAnimation((0, 1));
-            var animationBlackBoot = sheet.CreateAnimation((2, 1));
-            var animationBluePearl = sheet.CreateAnimation((0, 0));
+            var animationGoldenBoot = sheet.CreateAnimation((2, 1));
             var animationRedHeart = sheet.CreateAnimation((1, 0));
             var animationGoldenFruit = sheet.CreateAnimation((2, 0));
 
-            var powerup = new SpeedPowerup();
+            APowerupBase powerup;
+
+            int p = rnd.Next(0, (int) PowerUpAnimation.Last - 1);
+            switch ((PowerUpAnimation)p)
+            {
+                case PowerUpAnimation.GoldenBoot:
+                    powerup = new SpeedPowerup(2.5);
+                    powerup.AddAnimation(0, animationGoldenBoot.Clone());
+                    break;
+                case PowerUpAnimation.BrownBoot: 
+                default:
+                    powerup = new SpeedPowerup(1.5);
+                    powerup.AddAnimation(0, animationBrownBoot.Clone());
+                    break;
+            }
+
             var vec = _MapGrid.GetFreePosition(powerup.GetCollisionBoxSize());
             powerup.Position = vec;
 
-            powerup.AddAnimation(PowerUpAnimation.BluePearl, animationBlackBoot.Clone());
-
-            _PowerupList.Add(powerup);
+            _Powerup = powerup;
         }
 
         private void SpawnFlower(int count, int health = Flower.HEALTH_MAX)
@@ -300,6 +309,14 @@ namespace ld46
                     SpawnFlower(1, Flower.HEALTH_DEAD);
                 }
 
+                //Spawn Powerup
+                if (_Powerup != null && _NextPowerupSpawn < DateTime.Now)
+                {
+                    int next = rnd.Next(5, 20);
+                    _NextPowerupSpawn = DateTime.Now.AddSeconds(next);
+                    SpawnRandomPowerup();
+                }
+
                 _PreviousKeyboardState = Keyboard.GetState();
                 base.Update(gameTime);
             }
@@ -406,16 +423,13 @@ namespace ld46
                     }
 
                     //Killision Powerup
-                    for (var j = 0; j < _PowerupList.Count; j++)
+                    if (_Powerup != null && newCollissionBox.Intersects(_Powerup.CollisionBox))
                     {
-                        var powerup = _PowerupList[j];
-                        if (newCollissionBox.Intersects(powerup.CollisionBox))
-                        {
-                            _TextList.Add(new FadingText(_Font, powerup.PowerupName, _Player.Position + new Vector2(_Player.TextureSize.Width / 2, _Player.TextureSize.Height / 2 - 5), Color.White));
-                            _PowerupList.Remove(powerup);
-                            powerup.Consume(_Player);
-                            PlaySoundEffect(_SoundEffects.CollectItem, 0.3f);
-                        }
+                        _TextList.Add(new FadingText(_Font, _Powerup.PowerupName, _Player.Position + new Vector2(_Player.TextureSize.Width / 2, _Player.TextureSize.Height / 2 - 5), Color.White));
+                        _Powerup.Consume(_Player);
+                        PlaySoundEffect(_SoundEffects.CollectItem, 0.3f);
+
+                        _Powerup = null;
                     }
 
                     //Kollision Kanten
@@ -424,12 +438,6 @@ namespace ld46
                     {
                         _Player.Position += offset;
                         isWalking = true;
-                    }
-
-                    //Spawn Powerup
-                    if (rnd.Next(0, 100) < 5)
-                    {
-                        SpawnPowerup();
                     }
 
                     //Aufraumen
@@ -450,8 +458,11 @@ namespace ld46
                     PlaySoundEffect(_SoundEffects.PlayerWalk, (float)rnd.NextDouble() * 0.05f + 0.1f, (float)rnd.NextDouble() * 0.2f);
                 }
 
-                _Player.WalkSoundCounter+=_Player.Speed;
-                _Player.WalkSoundCounter %= 60;
+                _Player.WalkSoundCounter += _Player.Speed;
+                if (_Player.WalkSoundCounter >= 60)
+                {
+                    _Player.WalkSoundCounter = 0;
+                }
             }
             else
             {
@@ -485,7 +496,7 @@ namespace ld46
                 var drawList = new List<AEntity>();
                 drawList.AddRange(_FlowerList);
                 drawList.Add(_Player);
-                drawList.AddRange(_PowerupList);
+                drawList.Add(_Powerup);
 
                 foreach (var i in drawList.OrderBy(v => v.Position.Y))
                 {

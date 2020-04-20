@@ -13,14 +13,20 @@ namespace ld46.Classes
     {
         public override string PowerupName => "SPEED UP";
 
+        private readonly double _Multiplier;
+
+        public SpeedPowerup(double multiplier)
+        {
+            _Multiplier = multiplier;
+        }
+
         public override void Consume(Player p)
         {
             Task.Run(() =>
             {
-                int origSpeed = p.Speed;
-                p.Speed *= 2;
+                p.Speed *= _Multiplier;
                 Thread.Sleep(5000);
-                p.Speed = origSpeed;
+                p.Speed = Player.DEFAULT_SPEED;
             });
         }
     }

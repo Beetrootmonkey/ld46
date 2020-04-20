@@ -46,6 +46,9 @@
     <Compile Include="Classes\AEntity.cs" />
     <Compile Include="Classes\FadingText.cs" />
     <Compile Include="Classes\HealthBarColors.cs" />
+    <Compile Include="Classes\Powerups\BombPowerup.cs" />
+    <Compile Include="Classes\Powerups\TorchPowerup.cs" />
+    <Compile Include="Classes\Powerups\HeartPowerup.cs" />
     <Compile Include="Classes\Powerups\SpeedPowerup.cs" />
     <Compile Include="Classes\Powerups\APowerupBase.cs" />
     <Compile Include="Classes\Lake.cs" />
