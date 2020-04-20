@@ -426,6 +426,12 @@ namespace ld46
                         isWalking = true;
                     }
 
+                    //Spawn Powerup
+                    if (rnd.Next(0, 100) < 5)
+                    {
+                        SpawnPowerup();
+                    }
+
                     //Aufraumen
                     for (var i2 = 0; i2 < _TextList.Count; i2++)
                     {
