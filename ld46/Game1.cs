@@ -376,6 +376,9 @@ namespace ld46
                     SpawnRandomPowerup();
                 }
 
+                //var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+                //_particleEffect.Update(deltaTime);
+
                 _PreviousKeyboardState = Keyboard.GetState();
                 base.Update(gameTime);
             }
