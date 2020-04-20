@@ -13,6 +13,12 @@ using Newtonsoft.Json.Linq;
 using Spritesheet;
 using Animation = Spritesheet.Animation;
 using Microsoft.Xna.Framework.Audio;
+using MonoGame.Extended.Particles;
+using MonoGame.Extended.TextureAtlases;
+using MonoGame.Extended.Particles.Profiles;
+using MonoGame.Extended.Particles.Modifiers;
+using MonoGame.Extended.Particles.Modifiers.Interpolators;
+using MonoGame.Extended.Particles.Modifiers.Containers;
 
 namespace ld46
 {
@@ -56,6 +62,9 @@ namespace ld46
         public static bool PlaySoundEffects = true;
         (Texture2D SoundOn, Texture2D SoundOff) _IconTextures;
         private MapGrid _MapGrid;
+
+        private ParticleEffect _particleEffect;
+        private Texture2D _particleTexture;
 
         public Game1()
         {
@@ -105,6 +114,49 @@ namespace ld46
         {
         }
 
+        private void ParticleInit(TextureRegion2D textureRegion)
+        {
+            _particleEffect = new ParticleEffect(autoTrigger: false)
+            {
+                Position = new Vector2(400, 240),
+                Emitters = new List<ParticleEmitter>
+                {
+                    new ParticleEmitter(textureRegion, 500, TimeSpan.FromSeconds(2.5),
+                        Profile.Ring(20f, Profile.CircleRadiation.None))
+                    {
+                        Parameters = new ParticleReleaseParameters
+                        {
+                            Speed = new Range<float>(0f, 50f),
+                            Quantity = 3,
+                            Rotation = new Range<float>(-1f, 1f),
+                            Scale = new Range<float>(3.0f, 4.0f)
+                        },
+                        Modifiers =
+                        {
+                            new AgeModifier
+                            {
+                                Interpolators =
+                                {
+                                    new ColorInterpolator
+                                    {
+                                        StartValue = new HslColor(31.8f, 0.847f, 0.5f),
+                                        EndValue = new HslColor(31.8f, 0f, 0f)
+                                    },
+                                    new OpacityInterpolator
+                                    {
+                                        StartValue = 1,
+                                        EndValue = 0
+                                    }
+                                }
+                            },
+                            new RotationModifier {RotationRate = -2.1f},
+                            new LinearGravityModifier {Direction = -Vector2.UnitY, Strength = 60f}
+                        }
+                    }
+                }
+            };
+        }
+
         /// <summary>
         /// LoadContent will be called once per game and is the place to load
         /// all of your content.
@@ -112,6 +164,13 @@ namespace ld46
         protected override void LoadContent()
         {
             _StartTime = DateTime.Now;
+
+            // Partikeltextur laden (hier: Partikeltextur generieren)
+            _particleTexture = new Texture2D(GraphicsDevice, 1, 1);
+            _particleTexture.SetData(new[] { Color.White });
+            ParticleInit(new TextureRegion2D(_particleTexture));
+
+
             // Sounds laden
             _SoundEffects = (
                 Content.Load<SoundEffect>("Sounds/Fire"),
@@ -132,6 +191,8 @@ namespace ld46
 
             //Font
             _Font = Content.Load<SpriteFont>("Default");
+
+            //ParticleEmitter pe = new ParticleEmitter();
 
             // HealthbarColorGradient
             HealthBarColors.Init(Content.Load<Texture2D>("Sprites/health_bar_color_gradient"));
@@ -299,6 +360,10 @@ namespace ld46
                     SpawnFlower(1);
                     SpawnFlower(1, Flower.HEALTH_DEAD);
                 }
+
+                //var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+                //_particleEffect.Update(deltaTime);
+
 
                 _PreviousKeyboardState = Keyboard.GetState();
                 base.Update(gameTime);
@@ -490,6 +555,8 @@ namespace ld46
                 {
                     fadingText.Draw(_SpriteBatch);
                 }
+
+                _SpriteBatch.Draw(_particleEffect);
 
 
                 float textY = 0;
