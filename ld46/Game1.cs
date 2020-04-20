@@ -52,7 +52,8 @@ namespace ld46
         private List<Flower> _FlowerList;
         private APowerupBase _Powerup;
         private List<FadingText> _TextList;
-        
+        private Vector2 _DefaultPlayerVector;
+
         private TimeSpan _LastFlowerHealthUpdate;
         private DateTime _NextPowerupSpawn;
 
@@ -196,10 +197,18 @@ namespace ld46
             // HealthbarColorGradient
             HealthBarColors.Init(Content.Load<Texture2D>("Sprites/health_bar_color_gradient"));
 
+            //Lake
+            Size lakeTextureSize = new Size(174, 106);
+            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/lake_spritesheet")).WithGrid((lakeTextureSize.Width, lakeTextureSize.Height), (0,0), (0,0));
+            _Lake = new Lake(new Vector2(Window.ClientBounds.Width / 2 - lakeTextureSize.Width/2, Window.ClientBounds.Height/2- lakeTextureSize.Height/2), lakeTextureSize);
+            _Lake.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0),(0, 1),(0, 2),(0, 3),(0, 4),(0, 5),(0, 6),(0, 7)));
+            
             //Player
+
             Size playerTextureSize = new Size(40, 56);
+            _DefaultPlayerVector = new Vector2(Window.ClientBounds.Width / 2 - lakeTextureSize.Width / 2 - 2 - playerTextureSize.Width, Window.ClientBounds.Height / 2 - playerTextureSize.Height);
             sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/player_spritesheet")).WithGrid((playerTextureSize.Width, playerTextureSize.Height), (0,0), (0,0));
-            _Player = new Player(new Vector2(100, 100), playerTextureSize);
+            _Player = new Player(_DefaultPlayerVector, playerTextureSize);
             _Player.AddAnimation(PlayerAnimation.Idle, sheet.CreateAnimation((0, 0)));
             (int x, int y)[] animFront = { (0, 0), (1, 0), (0, 0), (2, 0) };
             (int x, int y)[] animBack = { (0, 1), (1, 1), (0, 1), (2, 1) };
@@ -208,17 +217,15 @@ namespace ld46
             _Player.AddAnimation(PlayerAnimation.LookingDownLeft, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation(animFront));
             _Player.AddAnimation(PlayerAnimation.LookingLeftUp, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation(animBack));
 
-            //Lake
-            Size lakeTextureSize = new Size(174, 106);
-            sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/lake_spritesheet")).WithGrid((lakeTextureSize.Width, lakeTextureSize.Height), (0,0), (0,0));
-            _Lake = new Lake(new Vector2(Window.ClientBounds.Width / 2 - lakeTextureSize.Width/2, Window.ClientBounds.Height/2- lakeTextureSize.Height/2), lakeTextureSize);
-            _Lake.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0),(0, 1),(0, 2),(0, 3),(0, 4),(0, 5),(0, 6),(0, 7)));
-
             //Flower
             _ActiveFlowerCount = 2;
             _FlowerList = new List<Flower>();
             SpawnFlower(10, Flower.HEALTH_DEAD);
             SpawnFlower(_ActiveFlowerCount);
+
+            //Powerup
+            _Powerup = null;
+            _NextPowerupSpawn = default;
 
             //FadingText
             _TextList = new List<FadingText>();
@@ -234,18 +241,31 @@ namespace ld46
             var animationBrownBoot = sheet.CreateAnimation((0, 1));
             var animationGoldenBoot = sheet.CreateAnimation((2, 1));
             var animationRedHeart = sheet.CreateAnimation((1, 0));
-            var animationGoldenFruit = sheet.CreateAnimation((2, 0));
+            var animationBomb = sheet.CreateAnimation((1, 1));
+            var animationTorch = sheet.CreateAnimation((3, 0));
 
             APowerupBase powerup;
 
-            int p = rnd.Next(0, (int) PowerUpAnimation.Last - 1);
+            int p = rnd.Next(0, (int) PowerUpAnimation.Last);
             switch ((PowerUpAnimation)p)
             {
+                case PowerUpAnimation.Torch:
+                    powerup = new TorchPowerup();
+                    powerup.AddAnimation(0, animationTorch.Clone());
+                    break;
+                case PowerUpAnimation.RedHeart:
+                    powerup = new HeartPowerup();
+                    powerup.AddAnimation(0, animationRedHeart.Clone());
+                    break;
+                case PowerUpAnimation.Bomb:
+                    powerup = new BombPowerup();
+                    powerup.AddAnimation(0, animationBomb.Clone());
+                    break;
                 case PowerUpAnimation.GoldenBoot:
                     powerup = new SpeedPowerup(2.5);
                     powerup.AddAnimation(0, animationGoldenBoot.Clone());
                     break;
-                case PowerUpAnimation.BrownBoot: 
+                case PowerUpAnimation.BrownBoot:
                 default:
                     powerup = new SpeedPowerup(1.5);
                     powerup.AddAnimation(0, animationBrownBoot.Clone());
@@ -325,6 +345,8 @@ namespace ld46
             
             if (_CurrentGameState == GameState.Running)
             {
+                int currentGameTime = (int)(DateTime.Now - _StartTime).TotalSeconds;
+
                 //Player
                 _Player.Update(gameTime);
                 UpdatePlayerPosition();
@@ -345,8 +367,10 @@ namespace ld46
                     flower.Update(gameTime);
                     if (updateFlowerHealth)
                     {
-                        _TextList.Add(new FadingText(_Font, "-4", flower.Position + new Vector2(flower.TextureSize.Width / 2, flower.TextureSize.Height / 2 - 5), Color.White));
-                        flower.Health -= 4;
+                        int dmg = 1 + (int)Math.Floor((double)currentGameTime / 20);
+
+                        flower.Health -= dmg;
+                        _TextList.Add(new FadingText(_Font, "-" + dmg, flower.Position + new Vector2(flower.TextureSize.Width / 2, flower.TextureSize.Height / 2 - 5), Color.White));
 
                         if (flower.Health <= 0)
                         {
@@ -361,7 +385,7 @@ namespace ld46
                     _CurrentGameState = GameState.GameOver;
                 }
 
-                if ((DateTime.Now - _StartTime).TotalSeconds / 20 + 1> _ActiveFlowerCount)
+                if (currentGameTime / 20 + 1> _ActiveFlowerCount)
                 {
                     _ActiveFlowerCount++;
                     SpawnFlower(1);
@@ -369,10 +393,8 @@ namespace ld46
                 }
 
                 //Spawn Powerup
-                if (_Powerup != null && _NextPowerupSpawn < DateTime.Now)
+                if (_Powerup == null && _NextPowerupSpawn < DateTime.Now)
                 {
-                    int next = rnd.Next(5, 20);
-                    _NextPowerupSpawn = DateTime.Now.AddSeconds(next);
                     SpawnRandomPowerup();
                 }
 
@@ -438,6 +460,7 @@ namespace ld46
                     //Kollision Blumen
                     foreach (var flower in _FlowerList)
                     {
+
                         if (newCollissionBox.Intersects(flower.CollisionBox))
                         {
                             if (_Player.Water > 0
@@ -459,7 +482,12 @@ namespace ld46
                             }
 
                             collisionWithFlower = true;
-                            break;
+                        }
+                        
+                        if (_Player.CollisionBox.Intersects(flower.CollisionBox))
+                        {
+                            _Player.Position = _DefaultPlayerVector;
+                            return;
                         }
                     }
 
@@ -484,10 +512,12 @@ namespace ld46
                     //Killision Powerup
                     if (_Powerup != null && newCollissionBox.Intersects(_Powerup.CollisionBox))
                     {
+                        _Powerup.Consume(_Player, _FlowerList);
+                        PlaySoundEffect(_SoundEffects.CollectItem, 0.3f);
                         _TextList.Add(new FadingText(_Font, _Powerup.PowerupName, _Player.Position + new Vector2(_Player.TextureSize.Width / 2, _Player.TextureSize.Height / 2 - 5), Color.White));
-                        _Powerup.Consume(_Player);
-                            PlaySoundEffect(_SoundEffects.CollectItem, 0.3f);
 
+                        int next = rnd.Next(5, 20);
+                        _NextPowerupSpawn = DateTime.Now.AddSeconds(next);
                         _Powerup = null;
                     }
 
@@ -555,7 +585,10 @@ namespace ld46
                 var drawList = new List<AEntity>();
                 drawList.AddRange(_FlowerList);
                 drawList.Add(_Player);
-                drawList.Add(_Powerup);
+                if (_Powerup != null)
+                {
+                    drawList.Add(_Powerup);
+                }
 
                 foreach (var i in drawList.OrderBy(v => v.Position.Y))
                 {

@@ -1,21 +1,59 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using MonoGame.Extended;
-using MonoGame.Extended.Entities;
-using Spritesheet;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ld46.Classes
 {
     class BombPowerup : APowerupBase
     {
-        public override string PowerupName => "BOOOM";
+        public override string PowerupName => _PowerupName;
 
-        public override void Consume(Player p)
+        private string _PowerupName;
+        private Random _Random = new Random();
+
+        public override void Consume(Player p, List<Flower> f)
         {
-            p.Life++;
+            int countDead = f.Count(v => v.Health == Flower.HEALTH_DEAD);
+            if (countDead == 0)
+            {
+                _PowerupName = "DUD :P";
+                return;
+            }
+
+            _PowerupName = "BOOOOOM!";
+            int r = _Random.Next(0, countDead);
+            int counter = 0;
+            for (int i = 0; i < f.Count; i++)
+            {
+                if (f[i].Health == Flower.HEALTH_DEAD)
+                {
+                    if (counter == r)
+                    {
+                        f.RemoveAt(i);
+                        break;
+                    }
+                    counter++;
+                }
+            }
+
+            countDead = f.Count(v => v.Health == Flower.HEALTH_DEAD);
+            if (countDead > 0)
+            {
+                r = _Random.Next(0, countDead);
+                counter = 0;
+                for (int i = 0; i < f.Count; i++)
+                {
+                    if (f[i].Health == Flower.HEALTH_DEAD)
+                    {
+                        if (counter == r)
+                        {
+                            f.RemoveAt(i);
+                            break;
+                        }
+                        counter++;
+                    }
+                }
+            }
         }
     }
 }

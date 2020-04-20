@@ -54,9 +54,9 @@ namespace ld46
                 return Vector2.Zero;
             }
 
-            int rdmTileIndex = _Random.Next(0, freeTiles.Count - 1);
-            int rdmXPos = _Random.Next(0, GRIDSIZE - size.Width - 1);
-            int rdmYPos = _Random.Next(0, GRIDSIZE - size.Height - 1);
+            int rdmTileIndex = _Random.Next(0, freeTiles.Count);
+            int rdmXPos = _Random.Next(0, GRIDSIZE - size.Width);
+            int rdmYPos = _Random.Next(0, GRIDSIZE - size.Height);
 
             var randomTile = freeTiles[rdmTileIndex];
 
