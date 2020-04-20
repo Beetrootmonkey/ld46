@@ -26,29 +26,11 @@
 /processorParam:Quality=Best
 /build:Sounds/Fill.wav
 
-#begin Sounds/Fill2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Sounds/Fill2.wav
-
 #begin Sounds/Fire.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
 /processorParam:Quality=Best
 /build:Sounds/Fire.wav
-
-#begin Sounds/Fire2.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Sounds/Fire2.wav
-
-#begin Sounds/Grow.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Sounds/Grow.wav
 
 #begin Sounds/Walk_fast.wav
 /importer:WavImporter
