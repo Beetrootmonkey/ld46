@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
+using Microsoft.Xna.Framework.Media;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ using MonoGame.Extended.Animations.SpriteSheets;
 using Newtonsoft.Json.Linq;
 using Spritesheet;
 using Animation = Spritesheet.Animation;
+using Microsoft.Xna.Framework.Audio;
 
 namespace ld46
 {
@@ -42,9 +44,12 @@ namespace ld46
         private Lake _Lake;
         private TimeSpan _LastFlowerHealthUpdate;
 
-        private Texture2D textureBackGround;
+        private Texture2D _TextureBackGround;
         Random rnd = new Random();
 
+        (SoundEffect FlowerGrow, SoundEffect PlayerWalk, SoundEffect GatherWater) _SoundEffects;
+        public static bool PlaySoundEffects = true;
+        (Texture2D SoundOn, Texture2D SoundOff) _SoundTextures;
 
         public Game1()
         {
@@ -76,6 +81,18 @@ namespace ld46
             base.Initialize();
         }
 
+        public static bool PlaySoundEffect(SoundEffect soundEffect) => PlaySoundEffect(soundEffect, 0.5f);
+        public static bool PlaySoundEffect(SoundEffect soundEffect, float volume) => PlaySoundEffect(soundEffect, volume, 0);
+        public static bool PlaySoundEffect(SoundEffect soundEffect, float volume, float pitch) => PlaySoundEffect(soundEffect, volume, pitch, 0);
+        public static bool PlaySoundEffect(SoundEffect soundEffect, float volume, float pitch, float pan)
+        {
+            if (PlaySoundEffects)
+            {
+                return soundEffect.Play(volume, pitch, pan);
+            }
+            return false;
+        }
+
         protected void OnResizeWindow()
         {
         }
@@ -87,6 +104,17 @@ namespace ld46
         protected override void LoadContent()
         {
             _StartTime = DateTime.Now;
+
+            // Sounds laden
+            _SoundEffects = (
+                Content.Load<SoundEffect>("Sounds/Grow"),
+                Content.Load<SoundEffect>("Sounds/Walk_fast"),
+                Content.Load<SoundEffect>("Sounds/Fill"));
+
+            // Texturen für Sound-Icons laden
+            _SoundTextures = (
+                Content.Load<Texture2D>("Sprites/icon_sound_on"),
+                Content.Load<Texture2D>("Sprites/icon_sound_off"));
 
             // Create a new SpriteBatch, which can be used to draw textures.
             _SpriteBatch = new SpriteBatch(GraphicsDevice);
@@ -121,7 +149,7 @@ namespace ld46
             _Player.AddAnimation(PlayerAnimation.LookingDownLeft, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation(animFront));
             _Player.AddAnimation(PlayerAnimation.LookingLeftUp, sheet.WithFrameEffect(SpriteEffects.FlipHorizontally).CreateAnimation(animBack));
 
-            textureBackGround = Content.Load<Texture2D>("Sprites/background");
+            _TextureBackGround = Content.Load<Texture2D>("Sprites/background");
 
             _CurrentGameState = GameState.Running;
         }
@@ -189,8 +217,14 @@ namespace ld46
             if (Keyboard.GetState().IsKeyDown(Keys.N) && !_PreviousKeyboardState.IsKeyDown(Keys.N))
             {
                 LoadFlower(1);
-            } 
+            }
 #endif
+            if (Keyboard.GetState().IsKeyDown(Keys.LeftControl) && Keyboard.GetState().IsKeyDown(Keys.S)
+                                                                && !_PreviousKeyboardState.IsKeyDown(Keys.S))
+            {
+                PlaySoundEffects = !PlaySoundEffects;
+            }
+
 
             if (_CurrentGameState == GameState.Running)
             {
@@ -241,6 +275,7 @@ namespace ld46
 
         private void UpdatePlayerPosition()
         {
+            bool isWalking = false;
             for (int i = 0; i < _Player.Speed; i++)
             {
                 Vector2 offsetX = Vector2.Zero;
@@ -275,6 +310,7 @@ namespace ld46
                 if (idle)
                 {
                     _Player.Idle();
+                    break;
                 }
 
                 var validOffsets = new List<Vector2>();
@@ -305,6 +341,11 @@ namespace ld46
                                 int heal = Math.Min(_Player.Water, healthLost);
                                 flower.Health += heal;
                                 _Player.Water -= heal;
+
+                                if (heal > 0)
+                                {
+                                    PlaySoundEffect(_SoundEffects.FlowerGrow, 0.5f, -0.2f);
+                                }
                             }
 
                             collisionWithFlower = true;
@@ -323,6 +364,7 @@ namespace ld46
                         if (_Player.Water != Player.MAX_WATER)
                         {
                             _Player.Water = Player.MAX_WATER;
+                            PlaySoundEffect(_SoundEffects.GatherWater, 0.3f);
                         }
                         continue;
                     }
@@ -333,8 +375,23 @@ namespace ld46
                     && newCollissionBox.Right <= Window.ClientBounds.Width && newCollissionBox.Bottom <= Window.ClientBounds.Height)
                     {
                         _Player._Position += offset;
+                        isWalking = true;
                     }
                 }
+            }
+
+            if (isWalking)
+            {
+                if (_Player.WalkSoundCounter == 0)
+                {
+                    PlaySoundEffect(_SoundEffects.PlayerWalk, (float)rnd.NextDouble() * 0.05f + 0.3f, (float)rnd.NextDouble() * 0.2f);
+                }
+
+                _Player.WalkSoundCounter++;
+                _Player.WalkSoundCounter %= 20;
+            } else
+            {
+                _Player.WalkSoundCounter = 0;
             }
         }
 
@@ -350,7 +407,7 @@ namespace ld46
 
             if (_CurrentGameState == GameState.Running)
             {
-                _SpriteBatch.Draw(textureBackGround, Vector2.Zero, Color.White);
+                _SpriteBatch.Draw(_TextureBackGround, Vector2.Zero, Color.White);
                 _Lake.Draw(_SpriteBatch);
 
                 var drawList = new List<AEntity>(_FlowerList)
@@ -381,6 +438,9 @@ namespace ld46
 
                 //Lava
                 _SpriteBatch.DrawString(_Font, "Lava: " + _Player.Water, new Vector2(0, textY), Color.White);
+
+                // Sound-Status
+                _SpriteBatch.Draw(PlaySoundEffects ? _SoundTextures.SoundOn : _SoundTextures.SoundOff, new Vector2(Window.ClientBounds.Width - 64 - 8, 8), Color.White);
             }
             else if (_CurrentGameState == GameState.GameOver)
             {

@@ -20,17 +20,35 @@
 /processorParam:TextureFormat=Compressed
 /build:Default.spritefont
 
-#begin Sprites/background.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/background.png
+#begin Sounds/Fill.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Fill.wav
+
+#begin Sounds/Grow.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Grow.wav
+
+#begin Sounds/Pew.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Pew.wav
+
+#begin Sounds/Walk_fast.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Walk_fast.wav
+
+#begin Sounds/Walk_slow.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Walk_slow.wav
 
 #begin Sprites/background.png
 /importer:TextureImporter
@@ -44,7 +62,7 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/background.png
 
-#begin Sprites/health_bar_color_gradient.png
+#begin Sprites/background.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -54,7 +72,7 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Sprites/health_bar_color_gradient.png
+/build:Sprites/background.png
 
 #begin Sprites/health_bar_color_gradient.png
 /importer:TextureImporter
@@ -80,7 +98,7 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/health_bar_color_gradient.png
 
-#begin Sprites/lake.png
+#begin Sprites/icon_sound_off.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -90,7 +108,19 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Sprites/lake.png
+/build:Sprites/icon_sound_off.png
+
+#begin Sprites/icon_sound_on.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Sprites/icon_sound_on.png
 
 #begin Sprites/lake.png
 /importer:TextureImporter
@@ -140,30 +170,6 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/lake_spritesheet.png
 
-#begin Sprites/lake_spritesheet.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/lake_spritesheet.png
-
-#begin Sprites/player.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/player.png
-
 #begin Sprites/player.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -211,30 +217,6 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Sprites/player_spritesheet.png
-
-#begin Sprites/player_spritesheet.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/player_spritesheet.png
-
-#begin Sprites/skull_spritesheet.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/skull_spritesheet.png
 
 #begin Sprites/skull_spritesheet.png
 /importer:TextureImporter

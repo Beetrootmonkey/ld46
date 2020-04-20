@@ -28,6 +28,8 @@ namespace ld46.Classes
         public int Life { get; set; } = MAX_LIVES;
         public int Speed { get; set; } = DEFAULT_SPEED;
 
+        public int WalkSoundCounter { get; set; }
+
         private bool _CurrentHDirection;
         public bool HDirection
         {
