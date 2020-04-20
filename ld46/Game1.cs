@@ -111,7 +111,7 @@ namespace ld46
             _StartTime = DateTime.Now;
             // Sounds laden
             _SoundEffects = (
-                Content.Load<SoundEffect>("Sounds/Grow"),
+                Content.Load<SoundEffect>("Sounds/Fire"),
                 Content.Load<SoundEffect>("Sounds/Walk_fast"),
                 Content.Load<SoundEffect>("Sounds/Fill"));
 
