@@ -3,22 +3,11 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
-using Microsoft.Xna.Framework.Media;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoGame.Extended.Animations;
-using MonoGame.Extended.Animations.SpriteSheets;
-using Newtonsoft.Json.Linq;
-using Spritesheet;
-using Animation = Spritesheet.Animation;
 using Microsoft.Xna.Framework.Audio;
 using MonoGame.Extended.Particles;
-using MonoGame.Extended.TextureAtlases;
-using MonoGame.Extended.Particles.Profiles;
-using MonoGame.Extended.Particles.Modifiers;
-using MonoGame.Extended.Particles.Modifiers.Interpolators;
-using MonoGame.Extended.Particles.Modifiers.Containers;
 
 namespace ld46
 {

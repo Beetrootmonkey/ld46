@@ -20,12 +20,6 @@
 /processorParam:TextureFormat=Compressed
 /build:Default.spritefont
 
-#begin Sounds/Blip.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Sounds/Blip.wav
-
 #begin Sounds/Coin.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
@@ -44,23 +38,11 @@
 /processorParam:Quality=Best
 /build:Sounds/Fire.wav
 
-#begin Sounds/Powerup.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Sounds/Powerup.wav
-
 #begin Sounds/Walk_fast.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
 /processorParam:Quality=Best
 /build:Sounds/Walk_fast.wav
-
-#begin Sounds/Walk_slow.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Sounds/Walk_slow.wav
 
 #begin Sprites/background.png
 /importer:TextureImporter
@@ -122,18 +104,6 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/items_spritesheet.png
 
-#begin Sprites/lake.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/lake.png
-
 #begin Sprites/lake_spritesheet.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -145,18 +115,6 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Sprites/lake_spritesheet.png
-
-#begin Sprites/player.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/player.png
 
 #begin Sprites/player_spritesheet.png
 /importer:TextureImporter

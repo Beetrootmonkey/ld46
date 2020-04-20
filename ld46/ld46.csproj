@@ -30,7 +30,7 @@
     <OutputPath>bin\$(MonoGamePlatform)\$(Platform)\$(Configuration)\</OutputPath>
     <DefineConstants>TRACE;LINUX</DefineConstants>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>false</Prefer32Bit>
@@ -75,9 +75,6 @@
     </Reference>
     <Reference Include="MonoGame.Extended.Entities, Version=3.7.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MonoGame.Extended.Entities.3.7.0\lib\netstandard2.0\MonoGame.Extended.Entities.dll</HintPath>
-    </Reference>
-    <Reference Include="MonoGame.Extended.Gui, Version=3.7.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MonoGame.Extended.Gui.3.7.0\lib\netstandard2.0\MonoGame.Extended.Gui.dll</HintPath>
     </Reference>
     <Reference Include="MonoGame.Extended.Input, Version=3.7.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MonoGame.Extended.Input.3.7.0\lib\netstandard2.0\MonoGame.Extended.Input.dll</HintPath>
