@@ -167,7 +167,7 @@ namespace ld46
             sheet = new Spritesheet.Spritesheet(Content.Load<Texture2D>("Sprites/lake_spritesheet")).WithGrid((lakeTextureSize.Width, lakeTextureSize.Height), (0,0), (0,0));
             _Lake = new Lake(new Vector2(Window.ClientBounds.Width / 2 - lakeTextureSize.Width/2, Window.ClientBounds.Height/2- lakeTextureSize.Height/2), lakeTextureSize);
             _Lake.AnimationDictionary.Add(0, sheet.CreateAnimation((0, 0),(0, 1),(0, 2),(0, 3),(0, 4),(0, 5),(0, 6),(0, 7)));
-            RegisterParticleEffect(CustomParticleEffect.CreateEmberParticleEffect(_ParticleTextures.Ember, _Lake.Position + new Vector2(lakeTextureSize.Width / 2, lakeTextureSize.Height / 2), _Lake.GetCollisionBoxSize()), 240);
+            RegisterParticleEffect(CustomParticleEffect.CreateEmberParticleEffect(_ParticleTextures.Ember, _Lake.Position + new Vector2(lakeTextureSize.Width / 2, lakeTextureSize.Height / 2), _Lake.GetCollisionBoxSize()));
 
 
             //Player
@@ -192,7 +192,7 @@ namespace ld46
 
             //Powerup
             _Powerup = null;
-            _NextPowerupSpawn = default;
+            _NextPowerupSpawn = default(DateTime);
 
             //FadingText
             _TextList = new List<FadingText>();
